@@ -1,0 +1,60 @@
+{
+  "session_date": "2026-06-12",
+  "book": "SQLP Mock - 집계와 윈도우",
+  "speakers": ["세은", "민준"],
+  "problems": [
+    {
+      "problem_number": 3,
+      "subject_area": "SQL 기본 및 활용",
+      "concepts": ["GROUP BY", "HAVING", "WHERE"],
+      "solution_summary": "WHERE와 HAVING의 적용 시점, 집계 조건의 위치를 묻는 문제",
+      "participants": [
+        {
+          "name": "세은",
+          "is_correct": false,
+          "understanding": "애매",
+          "concepts_covered": ["GROUP BY"],
+          "concepts_missed": ["HAVING", "WHERE 실행 순서"],
+          "errors": ["집계 함수 조건을 WHERE에 둔다고 설명함"],
+          "review_required": true
+        },
+        {
+          "name": "민준",
+          "is_correct": true,
+          "understanding": "잘함",
+          "concepts_covered": ["GROUP BY", "HAVING", "WHERE"],
+          "concepts_missed": [],
+          "errors": [],
+          "review_required": false
+        }
+      ]
+    },
+    {
+      "problem_number": 4,
+      "subject_area": "SQL 기본 및 활용",
+      "concepts": ["윈도우 함수", "RANK", "DENSE_RANK", "ROW_NUMBER"],
+      "solution_summary": "순위 함수별 동점 처리 방식과 결과 행 번호를 비교하는 문제",
+      "participants": [
+        {
+          "name": "세은",
+          "is_correct": false,
+          "understanding": "모름",
+          "concepts_covered": ["ROW_NUMBER"],
+          "concepts_missed": ["RANK", "DENSE_RANK"],
+          "errors": ["RANK와 DENSE_RANK가 같은 순번을 만든다고 오해함"],
+          "review_required": true
+        },
+        {
+          "name": "민준",
+          "is_correct": false,
+          "understanding": "애매",
+          "concepts_covered": ["RANK"],
+          "concepts_missed": ["DENSE_RANK"],
+          "errors": ["동점 이후 순번을 건너뛰는지 확신하지 못함"],
+          "review_required": true
+        }
+      ]
+    }
+  ]
+}
+

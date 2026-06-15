@@ -1,0 +1,60 @@
+{
+  "session_date": "2026-06-10",
+  "book": "SQLP Mock - 조인 집중",
+  "speakers": ["세은", "수철"],
+  "problems": [
+    {
+      "problem_number": 1,
+      "subject_area": "SQL 기본 및 활용",
+      "concepts": ["INNER JOIN", "OUTER JOIN", "NULL"],
+      "solution_summary": "INNER JOIN과 OUTER JOIN의 결과 차이, NULL 보존 여부를 비교하는 문제",
+      "participants": [
+        {
+          "name": "세은",
+          "is_correct": true,
+          "understanding": "애매",
+          "concepts_covered": ["INNER JOIN"],
+          "concepts_missed": ["OUTER JOIN 기준 테이블", "NULL 보존"],
+          "errors": ["LEFT OUTER JOIN에서 보존되는 테이블 방향을 헷갈림"],
+          "review_required": true
+        },
+        {
+          "name": "수철",
+          "is_correct": false,
+          "understanding": "모름",
+          "concepts_covered": [],
+          "concepts_missed": ["INNER JOIN", "OUTER JOIN", "NULL"],
+          "errors": ["OUTER JOIN을 INNER JOIN과 동일한 결과로 이해함"],
+          "review_required": true
+        }
+      ]
+    },
+    {
+      "problem_number": 2,
+      "subject_area": "SQL 기본 및 활용",
+      "concepts": ["SELF JOIN", "계층형 질의"],
+      "solution_summary": "동일 테이블을 여러 번 참조해 상하 관계를 찾는 SELF JOIN 문제",
+      "participants": [
+        {
+          "name": "세은",
+          "is_correct": true,
+          "understanding": "잘함",
+          "concepts_covered": ["SELF JOIN", "테이블 별칭"],
+          "concepts_missed": [],
+          "errors": [],
+          "review_required": false
+        },
+        {
+          "name": "수철",
+          "is_correct": true,
+          "understanding": "애매",
+          "concepts_covered": ["SELF JOIN"],
+          "concepts_missed": ["계층 관계 방향"],
+          "errors": ["부모/자식 별칭을 반대로 읽음"],
+          "review_required": true
+        }
+      ]
+    }
+  ]
+}
+

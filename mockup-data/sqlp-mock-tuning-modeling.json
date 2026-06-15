@@ -1,0 +1,59 @@
+{
+  "session_date": "2026-06-14",
+  "book": "SQLP Mock - 튜닝과 모델링",
+  "speakers": ["지아", "수철"],
+  "problems": [
+    {
+      "problem_number": 5,
+      "subject_area": "SQL 고급 활용 및 튜닝",
+      "concepts": ["실행계획", "인덱스", "Full Table Scan"],
+      "solution_summary": "실행계획에서 Full Table Scan과 Index Range Scan의 의미를 해석하는 문제",
+      "participants": [
+        {
+          "name": "지아",
+          "is_correct": true,
+          "understanding": "잘함",
+          "concepts_covered": ["실행계획", "인덱스"],
+          "concepts_missed": [],
+          "errors": [],
+          "review_required": false
+        },
+        {
+          "name": "수철",
+          "is_correct": false,
+          "understanding": "모름",
+          "concepts_covered": [],
+          "concepts_missed": ["실행계획", "Full Table Scan", "인덱스 선택도"],
+          "errors": ["Full Table Scan은 항상 비효율적이라고 단정함"],
+          "review_required": true
+        }
+      ]
+    },
+    {
+      "problem_number": 6,
+      "subject_area": "데이터 모델링의 이해",
+      "concepts": ["정규화", "반정규화", "식별관계"],
+      "solution_summary": "정규화와 반정규화 적용 기준, 식별관계 선택 근거를 설명하는 문제",
+      "participants": [
+        {
+          "name": "지아",
+          "is_correct": false,
+          "understanding": "애매",
+          "concepts_covered": ["정규화"],
+          "concepts_missed": ["반정규화 적용 기준"],
+          "errors": ["반정규화를 정규화의 단순 반대 과정으로 설명함"],
+          "review_required": true
+        },
+        {
+          "name": "수철",
+          "is_correct": true,
+          "understanding": "잘함",
+          "concepts_covered": ["정규화", "식별관계"],
+          "concepts_missed": [],
+          "errors": [],
+          "review_required": false
+        }
+      ]
+    }
+  ]
+}

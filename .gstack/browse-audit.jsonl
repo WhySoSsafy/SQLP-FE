@@ -1,0 +1,79 @@
+{"ts":"2026-06-13T08:54:21.912Z","cmd":"goto","args":"http://127.0.0.1:5176/","origin":"http://127.0.0.1:5176/","durationMs":383,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:28.726Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":22,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:33.214Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":70,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:36.678Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":8,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:41.835Z","cmd":"js","args":"localStorage.clear(); location.reload();","origin":"http://127.0.0.1:5176/","durationMs":3,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:47.628Z","cmd":"wait","args":"--load","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:52.595Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":11,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:54:57.677Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":35,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:02.458Z","cmd":"click","args":"text=JSON 등록","origin":"http://127.0.0.1:5176/","durationMs":43,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:08.672Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:15.361Z","cmd":"js","args":"document.querySelector('textarea')?.getAttribute('placeholder')","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:27.332Z","cmd":"fill","args":"textarea {\"session_date\":\"2026-06-13\",\"book\":\"SQLP 실전문제\",\"speakers\":[\"세은\",\"수철\"],\"problems\":[{\"problem_number\":1,\"subject_area\":\"SQL 기본 및 활용\",\"concepts\":[\"JOIN\",\"OUTER JOIN\",\"NULL\"],\"solution_summary\":…","origin":"http://127.0.0.1:5176/","durationMs":10,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:39.265Z","cmd":"click","args":"text=형식 검증하기","origin":"http://127.0.0.1:5176/","durationMs":34,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:42.812Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:47.811Z","cmd":"click","args":"text=학습 기록 등록하기","origin":"http://127.0.0.1:5176/","durationMs":24,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:51.811Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:55:58.368Z","cmd":"is","args":"disabled text=학습 기록 등록하기","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:04.691Z","cmd":"click","args":"text=학습 세션","origin":"http://127.0.0.1:5176/","durationMs":10,"status":"error","hasCookies":false,"mode":"launched","error":"click: Error: strict mode violation: locator('text=학습 세션') resolved to 2 elements:\n    1) <span>학습 세션</span> aka getByRole('button', { name: '학습 세션' })\n    2) <div>✅ 학습 기록이 성공적으로 등록되었습니다! 학습 세션 목록에서 확인하세요.</div> aka getByText('✅ 학습 기록이 성공적으로 등록되었습니다! 학습 세션 목록에서 확인하세요')\n\nCall log:\n\u001b[2m  - waiting for…"}
+{"ts":"2026-06-13T08:56:09.335Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":4,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:13.277Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":20,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:18.423Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:25.054Z","cmd":"snapshot","args":"-i -C","origin":"http://127.0.0.1:5176/","durationMs":4,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:28.747Z","cmd":"click","args":"@c17","origin":"http://127.0.0.1:5176/","durationMs":27,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:32.281Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:36.876Z","cmd":"snapshot","args":"-i -C","origin":"http://127.0.0.1:5176/","durationMs":9,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:40.494Z","cmd":"click","args":"@c17","origin":"http://127.0.0.1:5176/","durationMs":21,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:46.359Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":4,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:52.703Z","cmd":"click","args":"text=홈","origin":"http://127.0.0.1:5176/","durationMs":38,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:56:56.596Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:02.114Z","cmd":"click","args":"text=취약 개념","origin":"http://127.0.0.1:5176/","durationMs":36,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:05.724Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:14.927Z","cmd":"click","args":"text=오답노트","origin":"http://127.0.0.1:5176/","durationMs":24,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:19.894Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:24.740Z","cmd":"snapshot","args":"-i -C","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:29.109Z","cmd":"click","args":"@e15","origin":"http://127.0.0.1:5176/","durationMs":34,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:36.217Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:42.443Z","cmd":"click","args":"text=오답노트","origin":"http://127.0.0.1:5176/","durationMs":29,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:50.357Z","cmd":"js","args":"Array.from(document.querySelectorAll('main button')).map((b,i)=>i+':'+b.textContent?.trim()).join(' | ')","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:57:54.890Z","cmd":"js","args":"document.querySelectorAll('main button')[5].click()","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:06.201Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:16.725Z","cmd":"click","args":"text=JSON 등록","origin":"http://127.0.0.1:5176/","durationMs":26,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:34.275Z","cmd":"fill","args":"textarea {\"session_date\":\"2026-06-13\",\"book\":\"SQLP 실전문제\",\"speakers\":[\"세은\"],\"problems\":[{\"problem_number\":1,\"subject_area\":\"잘못된 과목\",\"concepts\":[\"JOIN\"],\"solution_summary\":\"요약\",\"participants\":[{\"name\":\"…","origin":"http://127.0.0.1:5176/","durationMs":3,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:39.327Z","cmd":"click","args":"text=형식 검증하기","origin":"http://127.0.0.1:5176/","durationMs":34,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:44.468Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:49.119Z","cmd":"is","args":"disabled text=학습 기록 등록하기","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:58:54.418Z","cmd":"reload","args":"","origin":"http://127.0.0.1:5176/","durationMs":23,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:07.749Z","cmd":"wait","args":"--load","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:07.795Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":14,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:13.335Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":40,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:13.371Z","cmd":"click","args":"text=학습 세션","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"error","hasCookies":false,"mode":"launched","error":"click: Error: strict mode violation: locator('text=학습 세션') resolved to 2 elements:\n    1) <span>학습 세션</span> aka getByRole('button', { name: '학습 세션' })\n    2) <h3>최근 학습 세션</h3> aka getByRole('heading', { name: '최근 학습 세션' })\n\nCall log:\n\u001b[2m  - waiting for locator('text=학습 세션')\u001b[22m\n"}
+{"ts":"2026-06-13T08:59:17.680Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:23.409Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":18,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:23.436Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:49.324Z","cmd":"click","args":"@e2","origin":"http://127.0.0.1:5176/","durationMs":19,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:55.442Z","cmd":"click","args":"text=JSON 파일 업로드","origin":"http://127.0.0.1:5176/","durationMs":25,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:55.478Z","cmd":"upload","args":"input[type=file] /private/tmp/sqlp-upload-test.json","origin":"http://127.0.0.1:5176/","durationMs":9,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:55.507Z","cmd":"click","args":"text=형식 검증하기","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T08:59:55.531Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:01.956Z","cmd":"click","args":"text=학습 기록 등록하기","origin":"http://127.0.0.1:5176/","durationMs":24,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:02.009Z","cmd":"click","args":"text=취약 개념","origin":"http://127.0.0.1:5176/","durationMs":26,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:02.037Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:30.995Z","cmd":"reload","args":"","origin":"http://127.0.0.1:5176/","durationMs":22,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:31.028Z","cmd":"wait","args":"--load","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:31.059Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":7,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:38.044Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":26,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-13T09:00:38.072Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:48:42.870Z","cmd":"goto","args":"http://127.0.0.1:5176/","origin":"http://127.0.0.1:5176/","durationMs":82,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:48:50.501Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":22,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:48:54.941Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":83,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:48:54.970Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":5,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:00.746Z","cmd":"js","args":"JSON.stringify({real: JSON.parse(localStorage.getItem('sqlp_ai_coach.sessions.v1')||'[]').length, mock: JSON.parse(localStorage.getItem('sqlp_ai_coach.mock_sessions.v1')||'[]').length})","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:07.222Z","cmd":"click","args":"@e9","origin":"http://127.0.0.1:5176/","durationMs":37,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:07.250Z","cmd":"js","args":"JSON.stringify({real: JSON.parse(localStorage.getItem('sqlp_ai_coach.sessions.v1')||'[]').length, mock: JSON.parse(localStorage.getItem('sqlp_ai_coach.mock_sessions.v1')||'[]').length, books: JSON.par…","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:11.968Z","cmd":"click","args":"@e3","origin":"http://127.0.0.1:5176/","durationMs":29,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:11.996Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:17.523Z","cmd":"snapshot","args":"-i","origin":"http://127.0.0.1:5176/","durationMs":6,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:22.416Z","cmd":"click","args":"@e10","origin":"http://127.0.0.1:5176/","durationMs":20,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:22.443Z","cmd":"js","args":"JSON.stringify({real: JSON.parse(localStorage.getItem('sqlp_ai_coach.sessions.v1')||'[]').length, mock: JSON.parse(localStorage.getItem('sqlp_ai_coach.mock_sessions.v1')||'[]').length})","origin":"http://127.0.0.1:5176/","durationMs":1,"status":"ok","hasCookies":false,"mode":"launched"}
+{"ts":"2026-06-15T08:49:26.872Z","cmd":"text","args":"","origin":"http://127.0.0.1:5176/","durationMs":0,"status":"ok","hasCookies":false,"mode":"launched"}
