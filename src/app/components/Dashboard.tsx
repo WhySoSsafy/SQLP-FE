@@ -19,7 +19,7 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
     { label: "평균 이해도", value: `${summary.averageUnderstanding}%`, sub: "전체 세션 평균", icon: <TrendingUp size={20} color="#10B981" />, accent: "#ECFDF5" },
     { label: "연속 학습일", value: `${summary.studyStreak}일`, sub: "오늘 기준", icon: <Flame size={20} color="#C8962A" />, accent: "#FEF8EC" },
   ];
-
+  //충돌나버려라!!
   return (
     <div style={{ width: "100%" }}>
       {/* Welcome */}
