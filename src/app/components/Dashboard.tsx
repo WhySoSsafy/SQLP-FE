@@ -21,7 +21,7 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
   ];
 
   return (
-    <div style={{ maxWidth: "1200px" }}>
+    <div style={{ width: "100%" }}>
       {/* Welcome */}
       <div style={{ marginBottom: "1.75rem" }}>
         <h1 style={{ color: "#111827", marginBottom: "0.25rem" }}>안녕하세요, 세은님 👋</h1>
