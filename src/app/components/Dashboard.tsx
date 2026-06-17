@@ -12,6 +12,61 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
   const summary = buildDashboardSummary(sessions, new Date());
   const recommendations = buildReviewRecommendations(sessions);
   const recentSessions = summarizeSessions(sessions).slice(0, 4);
+  const sectionHeaderStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "1rem",
+  };
+  const sectionLinkStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.25rem",
+    fontSize: "0.8125rem",
+    color: "#C8962A",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 500,
+    padding: 0,
+  };
+  const listStackStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.875rem",
+  };
+  const listCardStyle: React.CSSProperties = {
+    backgroundColor: "#FFFFFF",
+    borderRadius: "12px",
+    padding: "1.125rem 1.25rem",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+    borderLeft: "4px solid #C8962A",
+    minHeight: "104px",
+  };
+  const emptyCardStyle: React.CSSProperties = {
+    ...listCardStyle,
+    color: "#6B7280",
+    fontSize: "0.875rem",
+    alignItems: "center",
+  };
+  const percentBlockStyle: React.CSSProperties = {
+    textAlign: "center",
+    flexShrink: 0,
+    minWidth: "56px",
+  };
+  const percentValueStyle: React.CSSProperties = {
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    lineHeight: 1.15,
+  };
+  const percentLabelStyle: React.CSSProperties = {
+    fontSize: "0.6875rem",
+    color: "#9CA3AF",
+    marginTop: "0.125rem",
+  };
 
   const summaryCards = [
     { label: "이번 주 풀이 문제", value: `${summary.weeklyProblemCount}문제`, sub: "이번 주 기준", icon: <BookOpen size={20} color="#C8962A" />, accent: "#FEF8EC" },
@@ -79,60 +134,25 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}>
         {/* Today's Review Recommendations */}
         <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "1rem",
-            }}
-          >
+          <div style={sectionHeaderStyle}>
             <h3 style={{ color: "#111827" }}>오늘의 복습 추천</h3>
             <button
               onClick={() => onNavigate("weak-concepts")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.25rem",
-                fontSize: "0.8125rem",
-                color: "#C8962A",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 500,
-              }}
+              style={sectionLinkStyle}
             >
               전체 보기 <ArrowRight size={14} />
             </button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+          <div style={listStackStyle}>
             {recommendations.length === 0 ? (
-              <div
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: "12px",
-                  padding: "1.125rem 1.25rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  color: "#6B7280",
-                  fontSize: "0.875rem",
-                }}
-              >
+              <div style={emptyCardStyle}>
                 저장된 학습 데이터가 없거나 현재 추천할 취약 개념이 없습니다.
               </div>
             ) : (
               recommendations.map((card, i) => (
                 <div
                   key={`${card.subject}-${card.concept}-${i}`}
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "12px",
-                    padding: "1.125rem 1.25rem",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "1rem",
-                    borderLeft: "4px solid #C8962A",
-                  }}
+                  style={listCardStyle}
                 >
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
@@ -155,11 +175,11 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
                     </div>
                     <div style={{ fontSize: "0.8125rem", color: "#6B7280" }}>{card.reason}</div>
                   </div>
-                  <div style={{ textAlign: "center", flexShrink: 0 }}>
-                    <div style={{ fontSize: "1.25rem", fontWeight: 700, color: card.score < 40 ? "#EF4444" : "#C8962A" }}>
+                  <div style={percentBlockStyle}>
+                    <div style={{ ...percentValueStyle, color: card.score < 40 ? "#EF4444" : "#C8962A" }}>
                       {card.score}%
                     </div>
-                    <div style={{ fontSize: "0.6875rem", color: "#9CA3AF" }}>이해도</div>
+                    <div style={percentLabelStyle}>이해도</div>
                   </div>
                 </div>
               ))
@@ -169,37 +189,18 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
 
         {/* Recent Sessions */}
         <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+          <div style={sectionHeaderStyle}>
             <h3 style={{ color: "#111827" }}>최근 학습 세션</h3>
             <button
               onClick={() => onNavigate("sessions")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.25rem",
-                fontSize: "0.8125rem",
-                color: "#C8962A",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 500,
-              }}
+              style={sectionLinkStyle}
             >
-              전체 <ArrowRight size={14} />
+              전체 보기 <ArrowRight size={14} />
             </button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div style={listStackStyle}>
             {recentSessions.length === 0 ? (
-              <div
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: "10px",
-                  padding: "1rem 1.125rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  color: "#6B7280",
-                  fontSize: "0.875rem",
-                }}
-              >
+              <div style={emptyCardStyle}>
                 최근 학습 세션이 없습니다.
               </div>
             ) : (
@@ -208,29 +209,42 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
                   key={s.id}
                   onClick={() => onNavigate("sessions")}
                   style={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "10px",
-                    padding: "1rem 1.125rem",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                    ...listCardStyle,
                     cursor: "pointer",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.375rem" }}>
-                    <span style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>{s.date}</span>
-                    <span
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                      <span
+                        style={{
+                          backgroundColor: "#FEF3C7",
+                          color: "#92690B",
+                          fontSize: "0.6875rem",
+                          fontWeight: 600,
+                          padding: "0.125rem 0.5rem",
+                          borderRadius: "999px",
+                        }}
+                      >
+                        최근 세션
+                      </span>
+                      <span style={{ fontSize: "0.75rem", color: "#9CA3AF" }}>{s.date}</span>
+                    </div>
+                    <div style={{ fontWeight: 600, color: "#111827", fontSize: "1rem", marginBottom: "0.25rem" }}>
+                      {s.book}
+                    </div>
+                    <div style={{ fontSize: "0.8125rem", color: "#6B7280" }}>{s.problemCount}문제</div>
+                  </div>
+                  <div style={percentBlockStyle}>
+                    <div
                       style={{
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
+                        ...percentValueStyle,
                         color: s.averageUnderstanding >= 75 ? "#10B981" : s.averageUnderstanding >= 60 ? "#C8962A" : "#EF4444",
                       }}
                     >
                       {s.averageUnderstanding}%
-                    </span>
+                    </div>
+                    <div style={percentLabelStyle}>이해도</div>
                   </div>
-                  <div style={{ fontWeight: 500, color: "#1F2937", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                    {s.book}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "#6B7280" }}>{s.problemCount}문제</div>
                 </div>
               ))
             )}
