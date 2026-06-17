@@ -76,7 +76,7 @@ export default function Dashboard({ onNavigate, sessions }: Props) {
       </div>
 
       {/* Bottom: Review + Recent */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "1.5rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "1.5rem" }}>
         {/* Today's Review Recommendations */}
         <div>
           <div
