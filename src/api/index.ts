@@ -2,7 +2,7 @@
  * API 모듈 공개 진입점.
  *
  * 화면/도메인 코드에서는 항상 이 모듈을 통해 import 한다.
- *   import { apiClient, ApiError, toApiError } from "@/app/api";
+ *   import { apiClient, ApiError, toApiError } from "@/api";
  *
  * ── 호출 예시 ─────────────────────────────────────────────
  * // 조회 (GET)

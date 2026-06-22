@@ -61,7 +61,7 @@ const weakItems = (concept: WeakConcept): number =>
     ? Object.values(concept.weakCountByParticipant).reduce((sum, count) => sum + count, 0)
     : concept.weakCountByParticipant[activeFilter.value] ?? 0;
 
-// echarts series names mirror the recharts filtering logic:
+// series = one bar per participant (+ 평균 when filter is 'all'):
 // when activeFilter !== "all", only the matching participant is shown (no 평균)
 const chartOption = computed(() => {
   const names = chartData.value.map((d) => d.name as string);
@@ -76,7 +76,7 @@ const chartOption = computed(() => {
   return {
     grid: { top: 8, right: 16, left: 8, bottom: 24, containLabel: true },
     tooltip: { trigger: "axis", valueFormatter: (v: number) => `${v}%` },
-    legend: { bottom: 0 },
+    legend: { bottom: 0, textStyle: { fontSize: 13 } },
     xAxis: {
       type: "category",
       data: names,
@@ -87,6 +87,7 @@ const chartOption = computed(() => {
       min: 0,
       max: 100,
       axisLabel: { fontSize: 11, color: "#6B7280", formatter: "{value}%" },
+      splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
     },
     series: seriesNames.map((s) => ({
       name: s,

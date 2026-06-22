@@ -11,7 +11,7 @@
  * 여기서는 request() 한 곳에서 응답을 가로챌 수 있는 구조까지만 준비한다.
  *
  * 사용 예시:
- *   import { apiClient } from "@/app/api";
+ *   import { apiClient } from "@/api";
  *   const sessions = await apiClient.get<SessionSummary[]>("/api/sessions/");
  *   const result = await apiClient.post("/api/analysis/validate/", payload);
  *   await apiClient.post("/api/auth/login/", { email, password }, { skipAuth: true });
