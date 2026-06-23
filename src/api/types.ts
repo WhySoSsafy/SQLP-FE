@@ -22,6 +22,23 @@ export interface ApiErrorEnvelope {
   errors?: ApiFieldError[];
 }
 
+/** 인증 사용자 정보 (로그인 응답 / GET /api/users/me/) */
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+/**
+ * 로그인 응답.
+ * user는 백엔드 응답에 포함될 때만 존재하므로 optional로 둔다.
+ */
+export interface LoginResponse {
+  access: string;
+  refresh: string;
+  user?: User;
+}
+
 /** HTTP 메서드 */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

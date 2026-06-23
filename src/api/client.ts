@@ -18,6 +18,7 @@
  */
 
 import { getAccessToken } from "./tokens";
+import { refreshAccessToken } from "./refresh";
 import {
   toApiError,
   toApiErrorFromNetwork,
@@ -117,13 +118,19 @@ async function parseBody(response: Response, strict: boolean): Promise<unknown> 
 
 /**
  * 모든 요청이 거쳐가는 단일 진입점.
- * 이후 토큰 재발급/재시도 로직은 이 함수에서 확장한다.
+ *
+ * access 토큰이 만료돼 401이 오면 refresh로 재발급을 1회 시도한 뒤 원래 요청을
+ * 1회 재시도한다. 재시도(isRetry) 요청과 skipAuth 요청(로그인/재발급)은 이 분기를
+ * 타지 않으므로 무한 재귀가 생기지 않는다.
+ *
+ * @param isRetry 재발급 후 재시도로 호출된 요청인지 여부. 외부에서는 항상 false.
  */
 async function request<T>(
   method: HttpMethod,
   path: string,
   body?: unknown,
   options: RequestOptions = {},
+  isRetry = false,
 ): Promise<T> {
   const hasBody = body !== undefined && method !== "GET";
   const url = buildUrl(path, options.query);
@@ -140,6 +147,21 @@ async function request<T>(
   } catch (error) {
     // 네트워크 단절, CORS, 요청 취소 등.
     throw toApiErrorFromNetwork(error);
+  }
+
+  // access 토큰 만료(401) → 재발급 후 1회 재시도.
+  // skipAuth(로그인/재발급)와 이미 재시도한 요청은 제외해 재귀를 막는다.
+  if (response.status === 401 && !options.skipAuth && !isRetry) {
+    try {
+      await refreshAccessToken();
+    } catch {
+      // 재발급 실패 시 세션 만료 통지는 refresh.ts가 이미 처리했다.
+      // 호출부에는 원본 401을 그대로 전달한다.
+      const errorBody = await parseBody(response, false);
+      throw toApiErrorFromResponse(response.status, errorBody);
+    }
+    // 재시도 시 buildHeaders가 새 access 토큰을 다시 읽어 Authorization을 갱신한다.
+    return request<T>(method, path, body, options, true);
   }
 
   if (!response.ok) {
