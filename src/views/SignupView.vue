@@ -1,52 +1,68 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { Database, Brain, BookOpen } from "lucide-vue-next";
-import { useAuthStore } from "@/stores/auth";
-import { toApiError } from "@/api";
+import { register, toApiError } from "@/api";
 
+const name = ref("");
 const email = ref("");
 const password = ref("");
+const passwordConfirm = ref("");
 const router = useRouter();
-const route = useRoute();
-const auth = useAuthStore();
-
-// 회원가입 직후 ?registered=1 로 넘어오면 안내 배너를 띄운다.
-const justRegistered = computed(() => route.query.registered === "1");
 
 const errorMessage = ref("");
 const submitting = ref(false);
 
-/** ApiError를 상황별 사용자 메시지로 변환한다(인증 실패와 서버/네트워크 오류를 구분). */
-function toLoginErrorMessage(error: unknown): string {
+/** 회원가입 실패(ApiError)를 상황별 사용자 메시지로 변환한다. */
+function toSignupErrorMessage(error: unknown): string {
   const apiError = toApiError(error);
-  if (apiError.status === 401) {
-    return "이메일 또는 비밀번호가 올바르지 않습니다.";
-  }
   if (apiError.status === 0) {
     return "서버에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.";
   }
   if (apiError.status >= 500) {
     return "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
+  // 400 VALIDATION_ERROR: 백엔드 필드 에러를 한국어 메시지로 매핑한다.
+  const emailError = apiError.fieldErrors.find((f) => f.path.includes("email"));
+  if (emailError) {
+    return /exist/i.test(emailError.message)
+      ? "이미 사용 중인 이메일입니다."
+      : "올바른 이메일 형식이 아닙니다.";
+  }
+  if (apiError.fieldErrors.some((f) => f.path.includes("password"))) {
+    return "비밀번호는 8자 이상이어야 합니다.";
+  }
+  if (apiError.fieldErrors.some((f) => f.path.includes("name"))) {
+    return "이름을 입력해주세요.";
+  }
   return apiError.message;
 }
 
-async function onLogin() {
+async function onSignup() {
   if (submitting.value) return;
   errorMessage.value = "";
 
-  if (!email.value || !password.value) {
-    errorMessage.value = "이메일과 비밀번호를 입력해주세요.";
+  // 필수값 / 비밀번호 규칙은 API 전송 전에 프론트에서 먼저 검사한다.
+  if (!name.value || !email.value || !password.value || !passwordConfirm.value) {
+    errorMessage.value = "모든 항목을 입력해주세요.";
+    return;
+  }
+  if (password.value.length < 8) {
+    errorMessage.value = "비밀번호는 8자 이상이어야 합니다.";
+    return;
+  }
+  if (password.value !== passwordConfirm.value) {
+    errorMessage.value = "비밀번호가 일치하지 않습니다.";
     return;
   }
 
   submitting.value = true;
   try {
-    await auth.login(email.value, password.value);
-    router.push({ name: "home" });
+    await register({ name: name.value, email: email.value, password: password.value });
+    // 백엔드가 토큰을 주지 않으므로 자동 로그인 없이 로그인 화면으로 이동한다.
+    router.push({ name: "login", query: { registered: "1" } });
   } catch (error) {
-    errorMessage.value = toLoginErrorMessage(error);
+    errorMessage.value = toSignupErrorMessage(error);
   } finally {
     submitting.value = false;
   }
@@ -74,14 +90,16 @@ const featureCards = [
           학습 발화 분석 기반 맞춤형 SQLP 학습 추천·관리 서비스
         </p>
 
-        <h2 :style="{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '1.5rem' }">로그인</h2>
-
-        <p
-          v-if="justRegistered"
-          :style="{ margin: '0 0 1.25rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', fontSize: '0.8125rem' }"
-        >✅ 회원가입이 완료되었습니다. 로그인해주세요.</p>
+        <h2 :style="{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '1.5rem' }">회원가입</h2>
 
         <div :style="{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.25rem' }">
+          <div>
+            <label :style="{ display: 'block', marginBottom: '0.375rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }">이름</label>
+            <input
+              type="text" v-model="name" placeholder="홍길동"
+              :style="{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', backgroundColor: '#fff' }"
+            />
+          </div>
           <div>
             <label :style="{ display: 'block', marginBottom: '0.375rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }">이메일</label>
             <input
@@ -92,7 +110,15 @@ const featureCards = [
           <div>
             <label :style="{ display: 'block', marginBottom: '0.375rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }">비밀번호</label>
             <input
-              type="password" v-model="password" placeholder="••••••••"
+              type="password" v-model="password" placeholder="8자 이상"
+              :style="{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', backgroundColor: '#fff' }"
+            />
+          </div>
+          <div>
+            <label :style="{ display: 'block', marginBottom: '0.375rem', fontSize: '0.875rem', fontWeight: 500, color: '#374151' }">비밀번호 확인</label>
+            <input
+              type="password" v-model="passwordConfirm" placeholder="••••••••"
+              @keyup.enter="onSignup"
               :style="{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', backgroundColor: '#fff' }"
             />
           </div>
@@ -101,15 +127,15 @@ const featureCards = [
             :style="{ margin: 0, fontSize: '0.8125rem', color: '#DC2626' }"
           >{{ errorMessage }}</p>
           <button
-            @click="onLogin"
+            @click="onSignup"
             :disabled="submitting"
             :style="{ width: '100%', padding: '0.8125rem', backgroundColor: '#C8962A', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }"
-          >{{ submitting ? "로그인 중..." : "로그인" }}</button>
+          >{{ submitting ? "가입 중..." : "회원가입" }}</button>
         </div>
 
         <p :style="{ textAlign: 'center', fontSize: '0.875rem', color: '#6B7280' }">
-          계정이 없으신가요?
-          <RouterLink :to="{ name: 'signup' }" :style="{ color: '#C8962A', fontWeight: 500, textDecoration: 'none' }">회원가입</RouterLink>
+          이미 계정이 있으신가요?
+          <RouterLink :to="{ name: 'login' }" :style="{ color: '#C8962A', fontWeight: 500, textDecoration: 'none' }">로그인</RouterLink>
         </p>
       </div>
     </div>

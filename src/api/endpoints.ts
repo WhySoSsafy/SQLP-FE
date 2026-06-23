@@ -12,6 +12,9 @@
 /** 로그인. POST → { access, refresh, user? } */
 export const LOGIN_ENDPOINT = "/api/auth/login/";
 
+/** 회원가입. POST { name, email, password } → { ok, user } (토큰 미발급) */
+export const REGISTER_ENDPOINT = "/api/auth/register/";
+
 /** access 토큰 재발급. POST { refresh } → { access } (SimpleJWT TokenRefreshView) */
 export const REFRESH_ENDPOINT = "/api/auth/refresh/";
 

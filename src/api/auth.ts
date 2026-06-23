@@ -6,8 +6,13 @@
  */
 
 import { apiClient } from "./client";
-import { LOGIN_ENDPOINT } from "./endpoints";
-import type { LoginRequest, LoginResponse } from "./types";
+import { LOGIN_ENDPOINT, REGISTER_ENDPOINT } from "./endpoints";
+import type {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+} from "./types";
 
 /**
  * 이메일/비밀번호로 로그인한다. (인증 전 호출이므로 skipAuth)
@@ -16,6 +21,17 @@ import type { LoginRequest, LoginResponse } from "./types";
  */
 export function login(credentials: LoginRequest): Promise<LoginResponse> {
   return apiClient.post<LoginResponse>(LOGIN_ENDPOINT, credentials, {
+    skipAuth: true,
+  });
+}
+
+/**
+ * 회원가입한다. (인증 전 호출이므로 skipAuth)
+ * 백엔드는 토큰을 발급하지 않고 생성된 user 정보만 반환한다.
+ * 실패 시 ApiError를 throw하며, 토큰/로그인 상태는 건드리지 않는다.
+ */
+export function register(payload: RegisterRequest): Promise<RegisterResponse> {
+  return apiClient.post<RegisterResponse>(REGISTER_ENDPOINT, payload, {
     skipAuth: true,
   });
 }
