@@ -3,15 +3,28 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Database, Brain, BookOpen } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
+import { toApiError } from "@/api";
 
 const email = ref("seun@sqlp.kr");
 const password = ref("password123");
 const router = useRouter();
 const auth = useAuthStore();
 
-function onLogin() {
-  auth.login();
-  router.push({ name: "home" });
+const errorMessage = ref("");
+const submitting = ref(false);
+
+async function onLogin() {
+  if (submitting.value) return;
+  errorMessage.value = "";
+  submitting.value = true;
+  try {
+    await auth.login(email.value, password.value);
+    router.push({ name: "home" });
+  } catch (error) {
+    errorMessage.value = toApiError(error).message;
+  } finally {
+    submitting.value = false;
+  }
 }
 
 const featureCards = [
@@ -53,10 +66,15 @@ const featureCards = [
               :style="{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box', backgroundColor: '#fff' }"
             />
           </div>
+          <p
+            v-if="errorMessage"
+            :style="{ margin: 0, fontSize: '0.8125rem', color: '#DC2626' }"
+          >{{ errorMessage }}</p>
           <button
             @click="onLogin"
-            :style="{ width: '100%', padding: '0.8125rem', backgroundColor: '#C8962A', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }"
-          >로그인</button>
+            :disabled="submitting"
+            :style="{ width: '100%', padding: '0.8125rem', backgroundColor: '#C8962A', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }"
+          >{{ submitting ? "로그인 중..." : "로그인" }}</button>
         </div>
 
         <p :style="{ textAlign: 'center', fontSize: '0.875rem', color: '#6B7280' }">
