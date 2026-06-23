@@ -5,23 +5,44 @@ import { Database, Brain, BookOpen } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
 import { toApiError } from "@/api";
 
-const email = ref("seun@sqlp.kr");
-const password = ref("password123");
+const email = ref("");
+const password = ref("");
 const router = useRouter();
 const auth = useAuthStore();
 
 const errorMessage = ref("");
 const submitting = ref(false);
 
+/** ApiError를 상황별 사용자 메시지로 변환한다(인증 실패와 서버/네트워크 오류를 구분). */
+function toLoginErrorMessage(error: unknown): string {
+  const apiError = toApiError(error);
+  if (apiError.status === 401) {
+    return "이메일 또는 비밀번호가 올바르지 않습니다.";
+  }
+  if (apiError.status === 0) {
+    return "서버에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.";
+  }
+  if (apiError.status >= 500) {
+    return "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+  }
+  return apiError.message;
+}
+
 async function onLogin() {
   if (submitting.value) return;
   errorMessage.value = "";
+
+  if (!email.value || !password.value) {
+    errorMessage.value = "이메일과 비밀번호를 입력해주세요.";
+    return;
+  }
+
   submitting.value = true;
   try {
     await auth.login(email.value, password.value);
     router.push({ name: "home" });
   } catch (error) {
-    errorMessage.value = toApiError(error).message;
+    errorMessage.value = toLoginErrorMessage(error);
   } finally {
     submitting.value = false;
   }

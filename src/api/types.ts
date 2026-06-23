@@ -29,6 +29,12 @@ export interface User {
   email: string;
 }
 
+/** 로그인 요청 (백엔드는 email/password로 인증한다) */
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 /**
  * 로그인 응답.
  * user는 백엔드 응답에 포함될 때만 존재하므로 optional로 둔다.
