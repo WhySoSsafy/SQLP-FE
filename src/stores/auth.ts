@@ -1,14 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import {
-  apiClient,
+  login as loginApi,
   getAccessToken,
   setAccessToken,
   setRefreshToken,
   clearTokens,
-  LOGIN_ENDPOINT,
 } from "@/api";
-import type { LoginResponse, User } from "@/api";
+import type { User } from "@/api";
 
 /**
  * 인증 스토어.
@@ -29,21 +28,26 @@ export const useAuthStore = defineStore("auth", () => {
 
   /**
    * 이메일/비밀번호로 로그인한다.
-   * 성공 시 access/refresh 토큰을 저장하고 user(있으면)를 보관한다.
-   * 실패 시 ApiError를 그대로 throw하므로 호출부에서 메시지를 처리한다.
+   * 성공 시에만 access/refresh 토큰을 저장하고 user(있으면)를 보관한다.
+   * 실패 시 토큰을 저장하지 않고, 남아있던 기존 토큰도 정리한 뒤 ApiError를
+   * 그대로 throw하므로 호출부에서 메시지를 처리한다.
    */
   async function login(email: string, password: string): Promise<void> {
-    const result = await apiClient.post<LoginResponse>(
-      LOGIN_ENDPOINT,
-      { email, password },
-      { skipAuth: true },
-    );
+    try {
+      const result = await loginApi({ email, password });
 
-    setAccessToken(result.access);
-    setRefreshToken(result.refresh);
-    // 응답에 user가 없으면 null 유지(위 TODO 참고).
-    user.value = result.user ?? null;
-    isLoggedIn.value = true;
+      setAccessToken(result.access);
+      setRefreshToken(result.refresh);
+      // 응답에 user가 없으면 null 유지(위 TODO 참고).
+      user.value = result.user ?? null;
+      isLoggedIn.value = true;
+    } catch (error) {
+      // 실패 시 토큰을 저장하지 않으며, 이전 세션의 잔여 토큰도 정리한다.
+      clearTokens();
+      user.value = null;
+      isLoggedIn.value = false;
+      throw error;
+    }
   }
 
   /** 로그아웃. 토큰을 모두 비우고 인증 상태를 초기화한다. */

@@ -48,6 +48,7 @@ export {
   clearTokens,
 } from "./tokens";
 export { refreshAccessToken, setOnAuthExpired } from "./refresh";
+export { login } from "./auth";
 export { LOGIN_ENDPOINT, REFRESH_ENDPOINT, ME_ENDPOINT } from "./endpoints";
 export type {
   ApiErrorEnvelope,
@@ -55,5 +56,6 @@ export type {
   HttpMethod,
   RequestOptions,
   User,
+  LoginRequest,
   LoginResponse,
 } from "./types";
