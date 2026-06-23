@@ -45,6 +45,22 @@ export interface LoginResponse {
   user?: User;
 }
 
+/** 회원가입 요청 (백엔드는 name/email/password를 받는다. password는 8자 이상) */
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+/**
+ * 회원가입 응답.
+ * 백엔드는 토큰을 발급하지 않고 생성된 user 정보만 반환한다.
+ */
+export interface RegisterResponse {
+  ok: boolean;
+  user: User;
+}
+
 /** HTTP 메서드 */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

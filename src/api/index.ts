@@ -48,8 +48,13 @@ export {
   clearTokens,
 } from "./tokens";
 export { refreshAccessToken, setOnAuthExpired } from "./refresh";
-export { login } from "./auth";
-export { LOGIN_ENDPOINT, REFRESH_ENDPOINT, ME_ENDPOINT } from "./endpoints";
+export { login, register } from "./auth";
+export {
+  LOGIN_ENDPOINT,
+  REGISTER_ENDPOINT,
+  REFRESH_ENDPOINT,
+  ME_ENDPOINT,
+} from "./endpoints";
 export type {
   ApiErrorEnvelope,
   ApiFieldError,
@@ -58,4 +63,6 @@ export type {
   User,
   LoginRequest,
   LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
 } from "./types";
