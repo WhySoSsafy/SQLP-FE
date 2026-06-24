@@ -96,6 +96,41 @@ export interface SessionSummary {
   reviewRequiredCount: number;
 }
 
+/** 학습 캘린더의 하루치 학습 항목. */
+export interface CalendarDayEntry {
+  /** "YYYY-MM-DD" */
+  date: string;
+  problemCount: number;
+  /** 0~100 */
+  averageUnderstanding: number;
+  reviewRequiredCount: number;
+  concepts: string[];
+  speakers: string[];
+  completed?: boolean;
+}
+
+/** 학습 캘린더 월별 요약. */
+export interface CalendarMonthSummary {
+  studyStreak: number;
+  totalProblemCount: number;
+  reviewRequiredCount: number;
+}
+
+/**
+ * 학습 캘린더 조회 API(GET /api/calendar/?year=&month=) 응답.
+ *
+ * 백엔드 스키마가 확정 전이라 모든 필드를 optional로 두고 방어적으로 처리한다.
+ * (days가 없으면 빈 달, summary가 없으면 days로부터 합계를 계산한다.)
+ *
+ * TODO(backend): 캘린더 응답 스키마(필드명/날짜별 항목 구조) 확정 시 재확인한다.
+ */
+export interface CalendarResponse {
+  year?: number;
+  month?: number;
+  days?: CalendarDayEntry[];
+  summary?: CalendarMonthSummary;
+}
+
 export interface DashboardSummary {
   weeklyProblemCount: number;
   reviewRequiredCount: number;

@@ -1,30 +1,77 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import type { CSSProperties } from "vue";
 import { ChevronLeft, ChevronRight, Flame, BookOpen } from "lucide-vue-next";
+import { fetchCalendar } from "@/api";
+import type { CalendarDayEntry, CalendarMonthSummary } from "@/domain/types";
 
-const STUDY_DAYS: Record<string, { problems: number; avg: number; concepts: string[]; needReview: number; speakers: string[] }> = {
-  "2026-06-03": { problems: 8, avg: 70, concepts: ["정규화"], needReview: 2, speakers: ["세은"] },
-  "2026-06-05": { problems: 12, avg: 55, concepts: ["서브쿼리", "인라인뷰"], needReview: 6, speakers: ["세은", "수철"] },
-  "2026-06-07": { problems: 10, avg: 65, concepts: ["인덱스"], needReview: 4, speakers: ["세은"] },
-  "2026-06-08": { problems: 12, avg: 80, concepts: ["정규화", "식별관계"], needReview: 2, speakers: ["세은"] },
-  "2026-06-09": { problems: 15, avg: 68, concepts: ["GROUP BY", "집계함수"], needReview: 5, speakers: ["세은", "수철"] },
-  "2026-06-10": { problems: 18, avg: 72, concepts: ["OUTER JOIN", "NULL"], needReview: 5, speakers: ["세은", "수철"] },
-  "2026-06-11": { problems: 15, avg: 68, concepts: ["SQLP 2과목"], needReview: 7, speakers: ["세은", "수철"] },
-  "2026-06-12": { problems: 20, avg: 76, concepts: ["실행계획", "인덱스", "윈도우 함수"], needReview: 6, speakers: ["세은", "수철"] },
+// 화면 표시용 날짜별 학습 항목 (기존 템플릿이 기대하던 형태).
+type StudyDay = {
+  problems: number;
+  avg: number;
+  concepts: string[];
+  needReview: number;
+  speakers: string[];
 };
 
 const DAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
-const year = ref(2026);
-const month = ref(6); // June
-const selectedDate = ref<string>("2026-06-12");
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// 하드코딩된 2026-06 대신 실제 "오늘" 기준 현재 월로 시작한다.
+const now = new Date();
+const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+const year = ref(now.getFullYear());
+const month = ref(now.getMonth() + 1);
+const selectedDate = ref<string | null>(null);
+
+// ── API 데이터 ────────────────────────────────────────────
+const calendarDays = ref<CalendarDayEntry[]>([]);
+const summary = ref<CalendarMonthSummary | null>(null);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+async function loadCalendar() {
+  loading.value = true;
+  error.value = null;
+  try {
+    const res = await fetchCalendar(year.value, month.value);
+    // 스키마가 확정 전이라 방어적으로 읽는다. (mock fallback 없이 실제 데이터만 사용)
+    calendarDays.value = Array.isArray(res?.days) ? res.days : [];
+    summary.value = res?.summary ?? null;
+  } catch {
+    error.value = "학습 캘린더를 불러오지 못했습니다.";
+    calendarDays.value = [];
+    summary.value = null;
+  } finally {
+    loading.value = false;
+  }
+}
+
+// 진입 시 + 월 이동 시 현재 연·월 기준으로 다시 조회한다.
+watch([year, month], loadCalendar, { immediate: true });
+
+const dateStr = (d: number) => `${year.value}-${pad(month.value)}-${pad(d)}`;
+
+// API 응답을 날짜 → 표시용 항목 맵으로 변환한다.
+const studyDays = computed<Record<string, StudyDay>>(() => {
+  const map: Record<string, StudyDay> = {};
+  for (const entry of calendarDays.value) {
+    if (!entry?.date) continue;
+    map[entry.date] = {
+      problems: entry.problemCount ?? 0,
+      avg: entry.averageUnderstanding ?? 0,
+      concepts: Array.isArray(entry.concepts) ? entry.concepts : [],
+      needReview: entry.reviewRequiredCount ?? 0,
+      speakers: Array.isArray(entry.speakers) ? entry.speakers : [],
+    };
+  }
+  return map;
+});
 
 const firstDay = computed(() => new Date(year.value, month.value - 1, 1).getDay());
 const daysInMonth = computed(() => new Date(year.value, month.value, 0).getDate());
-
-const pad = (n: number) => String(n).padStart(2, "0");
-const dateStr = (d: number) => `${year.value}-${pad(month.value)}-${pad(d)}`;
 
 const prevMonth = () => {
   if (month.value === 1) { year.value -= 1; month.value = 12; }
@@ -35,8 +82,24 @@ const nextMonth = () => {
   else month.value += 1;
 };
 
-const selectedData = computed(() => selectedDate.value ? STUDY_DAYS[selectedDate.value] : null);
-const totalProblems = Object.values(STUDY_DAYS).reduce((s, d) => s + d.problems, 0);
+const selectedData = computed(() =>
+  selectedDate.value ? studyDays.value[selectedDate.value] ?? null : null,
+);
+
+// 월별 합계는 응답 summary가 있으면 우선 사용하고, 없으면 days로부터 계산한다.
+const totalProblems = computed(
+  () =>
+    summary.value?.totalProblemCount ??
+    calendarDays.value.reduce((s, d) => s + (d.problemCount ?? 0), 0),
+);
+const totalReview = computed(
+  () =>
+    summary.value?.reviewRequiredCount ??
+    calendarDays.value.reduce((s, d) => s + (d.reviewRequiredCount ?? 0), 0),
+);
+const studyStreak = computed(() => summary.value?.studyStreak ?? 0);
+
+const isEmpty = computed(() => !loading.value && !error.value && calendarDays.value.length === 0);
 
 const cells = computed<(number | null)[]>(() => {
   const arr: (number | null)[] = [];
@@ -46,9 +109,9 @@ const cells = computed<(number | null)[]>(() => {
 });
 
 const stats = computed(() => [
-  { label: "현재 연속 학습일", value: "4일", accent: "#FEF8EC", iconType: "flame" as const },
-  { label: "이번 달 총 풀이 문제", value: `${totalProblems}문제`, accent: "#EFF6FF", iconType: "bookopen" as const },
-  { label: "이번 달 복습 필요", value: "18문제", accent: "#FEF2F2", iconType: "emoji" as const },
+  { label: "현재 연속 학습일", value: `${studyStreak.value}일`, accent: "#FEF8EC", iconType: "flame" as const },
+  { label: "이번 달 총 풀이 문제", value: `${totalProblems.value}문제`, accent: "#EFF6FF", iconType: "bookopen" as const },
+  { label: "이번 달 복습 필요", value: `${totalReview.value}문제`, accent: "#FEF2F2", iconType: "emoji" as const },
 ]);
 
 const detailRows = computed(() => {
@@ -67,10 +130,10 @@ const avgColor = computed(() => {
   return avg >= 75 ? "#10B981" : avg >= 60 ? "#C8962A" : "#EF4444";
 });
 
-const dayStyles = (day: number, idx: number): CSSProperties => {
+const dayStyles = (day: number): CSSProperties => {
   const ds = dateStr(day);
   const isSelected = ds === selectedDate.value;
-  const isToday = ds === "2026-06-12";
+  const isToday = ds === todayStr;
   return {
     borderRadius: "8px",
     padding: "0.5rem 0.25rem",
@@ -94,8 +157,7 @@ const dayNumberColor = (day: number): string => {
 };
 
 const dayNumberWeight = (day: number): number => {
-  const ds = dateStr(day);
-  return ds === "2026-06-12" ? 700 : 400;
+  return dateStr(day) === todayStr ? 700 : 400;
 };
 </script>
 
@@ -139,6 +201,23 @@ const dayNumberWeight = (day: number): number => {
       </div>
     </div>
 
+    <!-- Loading / Error / Empty -->
+    <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
+      학습 캘린더를 불러오는 중...
+    </div>
+    <div
+      v-else-if="error"
+      :style="{ color: '#DC2626', fontSize: '0.875rem', marginBottom: '1rem' }"
+    >
+      {{ error }}
+    </div>
+    <div
+      v-else-if="isEmpty"
+      :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }"
+    >
+      이번 달 학습 기록이 없습니다.
+    </div>
+
     <!-- Calendar + Sidebar -->
     <div :style="{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }">
       <!-- Calendar -->
@@ -177,7 +256,7 @@ const dayNumberWeight = (day: number): number => {
             <div v-if="day === null" />
             <div
               v-else
-              :style="dayStyles(day, idx)"
+              :style="dayStyles(day)"
               @click="selectedDate = dateStr(day)"
             >
               <span
@@ -190,11 +269,11 @@ const dayNumberWeight = (day: number): number => {
                 {{ day }}
               </span>
               <div
-                v-if="STUDY_DAYS[dateStr(day)]"
+                v-if="studyDays[dateStr(day)]"
                 :style="{ marginTop: '0.25rem', display: 'flex', flexDirection: 'column' as CSSProperties['flexDirection'], alignItems: 'center', gap: '0.125rem' }"
               >
                 <div :style="{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#C8962A' }" />
-                <span :style="{ fontSize: '0.625rem', color: '#92690B', fontWeight: 500 }">{{ STUDY_DAYS[dateStr(day)].problems }}문</span>
+                <span :style="{ fontSize: '0.625rem', color: '#92690B', fontWeight: 500 }">{{ studyDays[dateStr(day)].problems }}문</span>
               </div>
             </div>
           </template>

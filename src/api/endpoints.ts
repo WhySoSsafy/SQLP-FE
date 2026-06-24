@@ -57,3 +57,12 @@ export const ANALYTICS_WRONG_ANSWERS_ENDPOINT = "/api/analytics/wrong-answers/";
  * TODO(backend): 검증 응답 본문 형태 확정 시 재확인한다.
  */
 export const ANALYSIS_VALIDATE_ENDPOINT = "/api/analysis/validate/";
+
+/**
+ * 학습 캘린더 조회.
+ *   GET ?year=&month= → CalendarResponse
+ *
+ * 월별 날짜별 학습 항목/요약을 조회한다. (year/month 쿼리로 해당 월 데이터를 받는다)
+ * TODO(backend): 쿼리 파라미터(year/month 또는 start/end)와 응답 스키마 확정 시 재확인한다.
+ */
+export const CALENDAR_ENDPOINT = "/api/calendar/";
