@@ -66,3 +66,12 @@ export const ANALYSIS_VALIDATE_ENDPOINT = "/api/analysis/validate/";
  * TODO(backend): 쿼리 파라미터(year/month 또는 start/end)와 응답 스키마 확정 시 재확인한다.
  */
 export const CALENDAR_ENDPOINT = "/api/calendar/";
+
+/**
+ * 스터디원 비교 조회.
+ *   GET → StudyComparisonResponse
+ *
+ * 스터디원별 개념 이해도/요약 비교 데이터를 조회한다.
+ * TODO(backend): 필터·정렬 쿼리(period/groupId 등) 지원 여부와 응답 스키마 확정 시 재확인한다.
+ */
+export const STUDY_COMPARISON_ENDPOINT = "/api/study-comparison/";

@@ -131,6 +131,43 @@ export interface CalendarResponse {
   summary?: CalendarMonthSummary;
 }
 
+/** 스터디원 비교 - 한 스터디원의 요약 지표. */
+export interface StudyComparisonMember {
+  name: string;
+  /** 0~100 */
+  averageUnderstanding: number;
+  /** 잘함 개수 */
+  goodCount: number;
+  /** 애매 개수 */
+  vagueCount: number;
+  /** 모름 개수 */
+  unknownCount: number;
+}
+
+/** 스터디원 비교 - 개념(문제)별 스터디원 이해도. */
+export interface StudyComparisonRow {
+  id: number;
+  concept: string;
+  subject: string;
+  /** 스터디원 이름 → 이해도 */
+  understandings: Record<string, Understanding>;
+}
+
+/**
+ * 스터디원 비교 조회 API(GET /api/study-comparison/) 응답.
+ *
+ * 현재 화면은 두 스터디원의 개념별 이해도 비교 UI이므로 그 표시에 필요한 형태로 정의한다.
+ * 백엔드 스키마가 확정 전이라 모든 필드를 optional로 두고 방어적으로 처리한다.
+ *
+ * TODO(backend): 응답 스키마(멤버 수/필드명/차트 데이터 포함 여부, 필터·정렬 쿼리) 확정 시 재확인한다.
+ */
+export interface StudyComparisonResponse {
+  /** 비교 대상 설명 (예: "SQLP 실전문제 (2026-06-12)") */
+  title?: string;
+  members?: StudyComparisonMember[];
+  rows?: StudyComparisonRow[];
+}
+
 export interface DashboardSummary {
   weeklyProblemCount: number;
   reviewRequiredCount: number;

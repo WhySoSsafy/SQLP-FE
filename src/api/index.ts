@@ -59,6 +59,7 @@ export {
 } from "./analytics";
 export { validateAnalysisJson } from "./analysis";
 export { fetchCalendar } from "./calendar";
+export { fetchStudyComparison } from "./studyComparison";
 export {
   LOGIN_ENDPOINT,
   REGISTER_ENDPOINT,
@@ -72,6 +73,7 @@ export {
   ANALYTICS_WRONG_ANSWERS_ENDPOINT,
   ANALYSIS_VALIDATE_ENDPOINT,
   CALENDAR_ENDPOINT,
+  STUDY_COMPARISON_ENDPOINT,
 } from "./endpoints";
 export type {
   ApiErrorEnvelope,
