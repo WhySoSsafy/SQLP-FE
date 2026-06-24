@@ -69,6 +69,23 @@ export interface ValidationResult {
   preview?: ValidationPreview;
 }
 
+/**
+ * 분석 JSON 검증 API(POST /api/analysis/validate/) 응답.
+ *
+ * 백엔드 응답 스키마가 확정 전이라 모든 필드를 optional로 두고 방어적으로 처리한다.
+ * - ok가 false거나 errors가 있으면 검증 실패로 본다.
+ * - preview/session/message는 백엔드가 내려줄 때만 사용한다.
+ *
+ * TODO(backend): 분석 검증 응답 스키마 확정 시 필드를 재확인한다.
+ */
+export interface AnalysisValidationResponse {
+  ok?: boolean;
+  message?: string;
+  errors?: ValidationError[];
+  preview?: ValidationPreview;
+  session?: LearningSession;
+}
+
 export interface SessionSummary {
   id: string;
   date: string;

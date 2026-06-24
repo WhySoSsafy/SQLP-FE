@@ -48,3 +48,12 @@ export const ANALYTICS_SESSION_SUMMARIES_ENDPOINT = "/api/analytics/sessions/";
 export const ANALYTICS_WEAK_CONCEPTS_ENDPOINT = "/api/analytics/weak-concepts/";
 export const ANALYTICS_RECOMMENDATIONS_ENDPOINT = "/api/analytics/recommendations/";
 export const ANALYTICS_WRONG_ANSWERS_ENDPOINT = "/api/analytics/wrong-answers/";
+
+/**
+ * 분석 JSON 검증.
+ *   POST { ...분석 JSON } → AnalysisValidationResponse
+ *
+ * 외부 AI가 생성한 분석 JSON을 등록 전에 백엔드 규칙으로 검증한다.
+ * TODO(backend): 검증 응답 본문 형태 확정 시 재확인한다.
+ */
+export const ANALYSIS_VALIDATE_ENDPOINT = "/api/analysis/validate/";
