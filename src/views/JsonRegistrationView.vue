@@ -59,20 +59,21 @@ const validatedSession = ref<LearningSession | null>(null);
 const validating = ref(false);
 const registered = ref(false);
 const registering = ref(false);
+const registerNotice = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
+// 등록 버튼은 검증 전에도 누를 수 있게 두고(누르면 "먼저 검증" 안내),
+// 실제 저장은 handleRegister에서 검증 통과 여부로 가드한다.
+// 검증/등록 진행 중이거나 이미 등록 완료된 경우에만 비활성화한다.
 const registerDisabled = computed(
-  () =>
-    validateStatus.value !== "ok" ||
-    !validatedSession.value ||
-    registered.value ||
-    registering.value
+  () => registered.value || registering.value || validating.value
 );
 
 const resetValidation = () => {
   validateStatus.value = null;
   validationErrors.value = [];
   serverMessage.value = null;
+  registerNotice.value = null;
   preview.value = null;
   validatedSession.value = null;
   registered.value = false;
@@ -82,6 +83,7 @@ const showError = (errors: string[]) => {
   validateStatus.value = "error";
   validationErrors.value = errors;
   serverMessage.value = null;
+  registerNotice.value = null;
   preview.value = null;
   validatedSession.value = null;
   registered.value = false;
@@ -89,6 +91,8 @@ const showError = (errors: string[]) => {
 
 const handleValidate = async () => {
   if (validating.value) return;
+
+  registerNotice.value = null;
 
   // 1) API 호출 전 프론트 기본 JSON 파싱 가드.
   let parsed: unknown;
@@ -147,13 +151,24 @@ const handleValidate = async () => {
 };
 
 const handleRegister = async () => {
-  if (registerDisabled.value) {
+  // 중복 제출 / 진행 중 / 이미 등록 완료 가드.
+  if (registering.value || validating.value || registered.value) {
+    return;
+  }
+
+  registerNotice.value = null;
+
+  // 검증이 통과하지 않은 JSON은 저장하지 않는다. 검증 결과가 없으면 먼저 검증을 안내한다.
+  const session = validatedSession.value;
+  if (validateStatus.value !== "ok" || !session) {
+    registerNotice.value = "먼저 ‘형식 검증하기’로 검증을 완료한 뒤 등록해주세요.";
     return;
   }
 
   registering.value = true;
   try {
-    const result = await saveSession(validatedSession.value!);
+    // 실제 세션 저장은 /api/sessions/ POST (domain saveSession → api createSession).
+    const result = await saveSession(session);
 
     if (!result.ok) {
       showError([result.error ?? "학습 세션 저장에 실패했습니다."]);
@@ -161,6 +176,7 @@ const handleRegister = async () => {
     }
 
     registered.value = true;
+    // 저장 성공 후 세션 목록 갱신 (선택 세션 id는 saveSession이 이미 갱신).
     await sessions.refresh();
   } finally {
     registering.value = false;
@@ -408,8 +424,25 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
             @click="handleRegister"
           >
             <Upload :size="16" />
-            학습 기록 등록하기
+            {{ registering ? "등록 중..." : "학습 기록 등록하기" }}
           </button>
+        </div>
+
+        <!-- Register guidance notice (e.g. validate first) -->
+        <div
+          v-if="registerNotice"
+          :style="{
+            marginTop: '1.25rem',
+            backgroundColor: '#F1F5F9',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            padding: '0.875rem 1.125rem',
+            color: '#475569',
+            fontSize: '0.875rem',
+            borderLeft: '3px solid #C8962A',
+          }"
+        >
+          {{ registerNotice }}
         </div>
 
         <!-- Validation error result -->
