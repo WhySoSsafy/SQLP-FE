@@ -61,6 +61,7 @@ export { validateAnalysisJson } from "./analysis";
 export { fetchCalendar } from "./calendar";
 export { fetchStudyComparison } from "./studyComparison";
 export { fetchConceptDetail } from "./concepts";
+export { fetchGrowthReport } from "./reports";
 export {
   LOGIN_ENDPOINT,
   REGISTER_ENDPOINT,
@@ -76,6 +77,7 @@ export {
   CALENDAR_ENDPOINT,
   STUDY_COMPARISON_ENDPOINT,
   CONCEPT_DETAIL_ENDPOINT,
+  GROWTH_REPORT_ENDPOINT,
 } from "./endpoints";
 export type {
   ApiErrorEnvelope,
