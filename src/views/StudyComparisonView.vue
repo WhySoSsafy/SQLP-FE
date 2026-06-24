@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { CSSProperties } from 'vue'
 import { fetchStudyComparison } from '@/api'
+import { understandingLabel } from '@/domain/understanding'
 import type {
   StudyComparisonMember,
   StudyComparisonRow,
@@ -257,10 +258,10 @@ const tableHeaders = computed(() => [
                 <td :style="{ padding: '0.875rem 1rem', color: '#374151' }">{{ row.concept }}</td>
                 <td :style="{ padding: '0.875rem 1rem', color: '#9CA3AF', fontSize: '0.8125rem', whiteSpace: 'nowrap' }">{{ row.subject }}</td>
                 <td :style="{ padding: '0.875rem 1rem' }">
-                  <span :style="getBadgeStyle(row.a)">{{ row.a ?? '-' }}</span>
+                  <span :style="getBadgeStyle(row.a)">{{ row.a ? understandingLabel(row.a) : '-' }}</span>
                 </td>
                 <td :style="{ padding: '0.875rem 1rem' }">
-                  <span :style="getBadgeStyle(row.b)">{{ row.b ?? '-' }}</span>
+                  <span :style="getBadgeStyle(row.b)">{{ row.b ? understandingLabel(row.b) : '-' }}</span>
                 </td>
                 <td :style="{ padding: '0.875rem 1rem' }">
                   <span
