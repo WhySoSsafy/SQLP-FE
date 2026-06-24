@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { CheckCircle, Circle } from "lucide-vue-next";
 import { buildWrongAnswerItems } from "@/domain/analytics";
-import { useSessionsStore } from "@/stores/sessions";
+import type { WrongAnswerItem } from "@/domain/types";
 
 type FilterType = "all" | "wrong" | "vague" | "unknown" | "done";
 
@@ -14,13 +14,27 @@ const FILTER_LABELS: { key: FilterType; label: string }[] = [
   { key: "done", label: "복습 완료" },
 ];
 
-const sessions = useSessionsStore();
-
 const filter = ref<FilterType>("all");
 const doneIds = ref<string[]>([]);
 
+const wrongAnswers = ref<WrongAnswerItem[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+onMounted(async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    wrongAnswers.value = await buildWrongAnswerItems();
+  } catch {
+    error.value = "오답노트 데이터를 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+});
+
 const items = computed(() =>
-  buildWrongAnswerItems(sessions.sessions).map((item) => ({
+  wrongAnswers.value.map((item) => ({
     ...item,
     done: doneIds.value.includes(item.id),
   }))
@@ -55,8 +69,40 @@ function toggle(id: string) {
 </script>
 
 <template>
+  <!-- Loading state -->
+  <div v-if="loading" :style="{ maxWidth: '900px' }">
+    <div
+      :style="{
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
+        padding: '3rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        textAlign: 'center',
+        color: '#9CA3AF',
+      }"
+    >
+      오답노트 데이터를 불러오는 중...
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div v-else-if="error" :style="{ maxWidth: '900px' }">
+    <div
+      :style="{
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
+        padding: '3rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        textAlign: 'center',
+        color: '#DC2626',
+      }"
+    >
+      {{ error }}
+    </div>
+  </div>
+
   <!-- Empty state -->
-  <div v-if="sessions.sessions.length === 0" :style="{ maxWidth: '900px' }">
+  <div v-else-if="items.length === 0" :style="{ maxWidth: '900px' }">
     <div
       :style="{
         backgroundColor: '#FFFFFF',

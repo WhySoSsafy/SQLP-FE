@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Search, ChevronRight, Filter } from "lucide-vue-next";
 import type { CSSProperties } from "vue";
 import { useSessionsStore } from "@/stores/sessions";
 import { summarizeSessions } from "@/domain/analytics";
+import type { SessionSummary } from "@/domain/types";
 
 const sessions = useSessionsStore();
 const router = useRouter();
@@ -12,7 +13,21 @@ const router = useRouter();
 const search = ref("");
 const underFilter = ref<"all" | "high" | "mid" | "low">("all");
 
-const summaries = computed(() => summarizeSessions(sessions.sessions));
+const summaries = ref<SessionSummary[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+onMounted(async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    summaries.value = await summarizeSessions();
+  } catch {
+    error.value = "학습 세션 목록을 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const filtered = computed(() =>
   summaries.value.filter((s) => {
@@ -162,6 +177,17 @@ const barTrackStyle: CSSProperties = {
 
 <template>
   <div :style="outerStyle">
+    <!-- Loading / Error -->
+    <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
+      학습 세션 목록을 불러오는 중...
+    </div>
+    <div
+      v-else-if="error"
+      :style="{ color: '#DC2626', fontSize: '0.875rem', marginBottom: '1rem' }"
+    >
+      {{ error }}
+    </div>
+
     <!-- Filters -->
     <div :style="filterBarStyle">
       <div :style="searchWrapStyle">
