@@ -1,7 +1,9 @@
 import type { LearningSession } from "./types";
 import { createMockSessions } from "./mockData";
+import { createSession, fetchSessions, toApiError } from "@/api";
 
-export const SESSION_STORAGE_KEY = "sqlp_ai_coach.sessions.v1";
+// 실제 학습 세션은 백엔드 API로 관리한다. (localStorage에 더 이상 저장하지 않는다)
+// 아래 키들은 개발용 mock 데이터와 UI 선택 상태 보존에만 쓰인다.
 export const MOCK_SESSION_STORAGE_KEY = "sqlp_ai_coach.mock_sessions.v1";
 export const SELECTED_SESSION_KEY = "sqlp_ai_coach.selected_session.v1";
 
@@ -10,20 +12,18 @@ export interface SaveSessionResult {
   error?: string;
 }
 
-export function loadSessions(): LearningSession[] {
-  return [...loadRealSessions(), ...loadMockSessions()].sort(compareSessionsDesc);
+export async function loadSessions(): Promise<LearningSession[]> {
+  const real = await loadRealSessions();
+  // 개발용 mock 데이터는 여전히 localStorage에서 가져와 함께 보여준다.
+  return [...real, ...loadMockSessions()].sort(compareSessionsDesc);
 }
 
-export function loadRealSessions(): LearningSession[] {
+export async function loadRealSessions(): Promise<LearningSession[]> {
   try {
-    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-
-    return parsed as LearningSession[];
+    return await fetchSessions();
   } catch {
+    // 목록 조회 실패 시에도 화면이 깨지지 않도록 빈 배열로 폴백한다.
+    // (mock 데이터는 loadSessions에서 별도로 합쳐진다)
     return [];
   }
 }
@@ -78,27 +78,28 @@ export function clearMockSessions(): SaveSessionResult {
   }
 }
 
-export function saveSession(session: LearningSession): SaveSessionResult {
+export async function saveSession(session: LearningSession): Promise<SaveSessionResult> {
   try {
-    const sessions = loadRealSessions();
+    const created = await createSession(session);
 
-    if (sessions.some((existing) => isDuplicateSession(existing, session))) {
+    // 방금 등록한 세션을 선택 상태로 둔다. (서버 발급 id가 있으면 그것을 사용)
+    setSelectedSessionId(created?.id ?? session.id);
+
+    return { ok: true };
+  } catch (error) {
+    const apiError = toApiError(error);
+
+    // 중복 세션은 백엔드가 DUPLICATE_SESSION 코드로 내려준다. (기존 UX 문구 유지)
+    if (apiError.code === "DUPLICATE_SESSION") {
       return {
         ok: false,
         error: "같은 날짜, 문제집명, 문제번호 구성을 가진 학습 세션이 이미 저장되어 있습니다.",
       };
     }
 
-    const next = [session, ...sessions].sort(compareSessionsDesc);
-
-    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(next));
-    window.localStorage.setItem(SELECTED_SESSION_KEY, session.id);
-
-    return { ok: true };
-  } catch {
     return {
       ok: false,
-      error: "브라우저 저장소에 학습 세션을 저장하지 못했습니다.",
+      error: apiError.message || "학습 세션을 저장하지 못했습니다.",
     };
   }
 }
@@ -138,16 +139,4 @@ export function compareSessionsDesc(a: LearningSession, b: LearningSession): num
   }
 
   return b.created_at.localeCompare(a.created_at);
-}
-
-function isDuplicateSession(a: LearningSession, b: LearningSession): boolean {
-  if (a.session_date !== b.session_date || a.book !== b.book) return false;
-
-  return getProblemNumberSetKey(a) === getProblemNumberSetKey(b);
-}
-
-function getProblemNumberSetKey(session: LearningSession): string {
-  return Array.from(new Set(session.problems.map((problem) => problem.problem_number)))
-    .sort((a, b) => a - b)
-    .join(",");
 }

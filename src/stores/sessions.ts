@@ -15,8 +15,8 @@ export const useSessionsStore = defineStore("sessions", () => {
   const selectedSessionId = ref<string | null>(null);
   const mockDataActive = ref(false);
 
-  function refresh() {
-    sessions.value = loadSessions();
+  async function refresh() {
+    sessions.value = await loadSessions();
     selectedSessionId.value = getSelectedSessionId();
     mockDataActive.value = hasMockSessions();
   }
@@ -26,14 +26,14 @@ export const useSessionsStore = defineStore("sessions", () => {
     selectedSessionId.value = sessionId;
   }
 
-  function addMockData() {
+  async function addMockData() {
     seedMockSessions();
-    refresh();
+    await refresh();
   }
 
-  function removeMockData() {
+  async function removeMockData() {
     clearMockSessions();
-    refresh();
+    await refresh();
   }
 
   return {

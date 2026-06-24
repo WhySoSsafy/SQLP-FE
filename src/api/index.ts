@@ -49,11 +49,13 @@ export {
 } from "./tokens";
 export { refreshAccessToken, setOnAuthExpired } from "./refresh";
 export { login, register } from "./auth";
+export { fetchSessions, createSession } from "./sessions";
 export {
   LOGIN_ENDPOINT,
   REGISTER_ENDPOINT,
   REFRESH_ENDPOINT,
   ME_ENDPOINT,
+  SESSIONS_ENDPOINT,
 } from "./endpoints";
 export type {
   ApiErrorEnvelope,

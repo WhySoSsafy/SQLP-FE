@@ -20,3 +20,12 @@ export const REFRESH_ENDPOINT = "/api/auth/refresh/";
 
 /** 내 정보 조회. GET → User */
 export const ME_ENDPOINT = "/api/users/me/";
+
+/**
+ * 학습 세션 목록 조회 / 등록.
+ *   GET  → LearningSession[]
+ *   POST { ...LearningSession } → LearningSession (서버 발급 id 포함)
+ *
+ * TODO(backend): 최종 명세 확정 시 응답 본문 형태(목록/등록)를 재확인한다.
+ */
+export const SESSIONS_ENDPOINT = "/api/sessions/";
