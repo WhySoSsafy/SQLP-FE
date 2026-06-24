@@ -55,10 +55,15 @@ const validationErrors = ref<string[]>([]);
 const preview = ref<ValidationPreview | null>(null);
 const validatedSession = ref<LearningSession | null>(null);
 const registered = ref(false);
+const registering = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const registerDisabled = computed(
-  () => validateStatus.value !== "ok" || !validatedSession.value || registered.value
+  () =>
+    validateStatus.value !== "ok" ||
+    !validatedSession.value ||
+    registered.value ||
+    registering.value
 );
 
 const resetValidation = () => {
@@ -92,20 +97,25 @@ const handleValidate = () => {
   registered.value = false;
 };
 
-const handleRegister = () => {
+const handleRegister = async () => {
   if (registerDisabled.value) {
     return;
   }
 
-  const result = saveSession(validatedSession.value!);
+  registering.value = true;
+  try {
+    const result = await saveSession(validatedSession.value!);
 
-  if (!result.ok) {
-    showError([result.error ?? "학습 세션 저장에 실패했습니다."]);
-    return;
+    if (!result.ok) {
+      showError([result.error ?? "학습 세션 저장에 실패했습니다."]);
+      return;
+    }
+
+    registered.value = true;
+    await sessions.refresh();
+  } finally {
+    registering.value = false;
   }
-
-  registered.value = true;
-  sessions.refresh();
 };
 
 const handleFile = (file: File) => {

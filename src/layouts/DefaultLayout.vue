@@ -36,8 +36,8 @@ const todayLabel = new Intl.DateTimeFormat("ko-KR", {
   year: "numeric", month: "long", day: "numeric", weekday: "long",
 }).format(new Date());
 
-onMounted(() => {
-  sessions.refresh();
+onMounted(async () => {
+  await sessions.refresh();
 });
 </script>
 
