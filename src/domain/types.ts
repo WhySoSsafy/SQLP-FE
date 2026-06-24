@@ -168,6 +168,55 @@ export interface StudyComparisonResponse {
   rows?: StudyComparisonRow[];
 }
 
+/** 개념 요약 - 관련 SQL/상황 예시. */
+export interface ConceptExample {
+  title?: string;
+  /** SQL 예시 코드 */
+  code?: string;
+  description?: string;
+}
+
+/** 개념 요약 - 관련 개념(다음 학습 추천). id가 있으면 해당 개념 페이지로 이동 가능. */
+export interface RelatedConcept {
+  id?: string | number;
+  name: string;
+}
+
+/**
+ * 개념 상세/요약 API(GET /api/concepts/{id}/) 응답.
+ *
+ * SQLP 교재 PDF를 AI가 개념 단위로 정리한 JSON을 백엔드가 내려준다고 가정한다.
+ * 백엔드 스키마가 확정 전이라 모든 표시 필드를 optional로 두고, 화면에서는
+ * 존재하는 데이터만 방어적으로 표시한다. (없는 섹션은 렌더하지 않는다)
+ *
+ * TODO(backend): 개념 JSON 응답 스키마(필드명/예시·관련개념 구조) 확정 시 재확인한다.
+ */
+export interface ConceptDetail {
+  id?: string | number;
+  /** 개념명 */
+  name?: string;
+  /** 과목 */
+  subject?: string;
+  /** 장 */
+  chapter?: string;
+  /** 절 */
+  section?: string;
+  /** 핵심 요약 */
+  summary?: string;
+  /** 쉬운 설명 */
+  easyExplanation?: string;
+  /** 주요 키워드 */
+  keywords?: string[];
+  /** 관련 SQL/상황 예시 */
+  examples?: ConceptExample[];
+  /** 자주 틀리는 포인트 */
+  commonMistakes?: string[];
+  /** 암기/정리 포인트 */
+  memorizationPoints?: string[];
+  /** 관련 개념 / 다음 학습 추천 */
+  relatedConcepts?: RelatedConcept[];
+}
+
 export interface DashboardSummary {
   weeklyProblemCount: number;
   reviewRequiredCount: number;

@@ -75,3 +75,13 @@ export const CALENDAR_ENDPOINT = "/api/calendar/";
  * TODO(backend): 필터·정렬 쿼리(period/groupId 등) 지원 여부와 응답 스키마 확정 시 재확인한다.
  */
 export const STUDY_COMPARISON_ENDPOINT = "/api/study-comparison/";
+
+/**
+ * 개념 상세/요약 조회.
+ *   GET /api/concepts/{id}/ → ConceptDetail
+ *
+ * SQLP 교재 PDF를 AI가 개념 단위로 정리한 JSON을 백엔드가 저장/관리하고,
+ * 프론트는 이 경로로 특정 개념 요약 데이터를 받아 표시한다. (동적 id → 함수형 상수)
+ * TODO(backend): 개념 JSON 응답 스키마(필드명/예시·관련개념 구조) 확정 시 재확인한다.
+ */
+export const CONCEPT_DETAIL_ENDPOINT = (id: string | number) => `/api/concepts/${id}/`;
