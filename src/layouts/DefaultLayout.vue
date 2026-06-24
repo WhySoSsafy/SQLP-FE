@@ -2,7 +2,7 @@
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import {
-  Home, Upload, BookOpen, BarChart2, AlertTriangle, Calendar, FileText, Users, Database, Bell, ChevronRight, Lightbulb,
+  Home, Upload, BookOpen, BarChart2, AlertTriangle, Calendar, FileText, Users, Database, Bell, ChevronRight, Lightbulb, TrendingUp,
 } from "lucide-vue-next";
 import { useSessionsStore } from "@/stores/sessions";
 
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { name: "wrong-answers", label: "오답노트", icon: FileText },
   { name: "study-comparison", label: "스터디 비교", icon: Users },
   { name: "concept-import", label: "개념 등록", icon: Lightbulb },
+  { name: "growth-report", label: "성장 리포트", icon: TrendingUp },
 ];
 
 const PAGE_LABELS: Record<string, string> = {
@@ -29,6 +30,7 @@ const PAGE_LABELS: Record<string, string> = {
   "study-comparison": "스터디원 비교",
   "concept-import": "개념 요약 JSON 등록",
   "concept-summary": "개념 요약",
+  "growth-report": "성장 리포트",
 };
 
 const route = useRoute();

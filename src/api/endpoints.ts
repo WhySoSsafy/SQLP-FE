@@ -85,3 +85,12 @@ export const STUDY_COMPARISON_ENDPOINT = "/api/study-comparison/";
  * TODO(backend): 개념 JSON 응답 스키마(필드명/예시·관련개념 구조) 확정 시 재확인한다.
  */
 export const CONCEPT_DETAIL_ENDPOINT = (id: string | number) => `/api/concepts/${id}/`;
+
+/**
+ * 학습 성장 리포트 조회.
+ *   GET → GrowthReport
+ *
+ * 이전 대비 성장(풀이 수/정답률/이해도/복습 필요 변화), 성장·취약 개념, 추이 등을 받는다.
+ * TODO(backend): 기간 필터(period 등) 지원 여부와 응답 스키마 확정 시 재확인한다.
+ */
+export const GROWTH_REPORT_ENDPOINT = "/api/reports/growth/";

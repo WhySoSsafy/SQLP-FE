@@ -30,6 +30,7 @@ const router = createRouter({
         { path: "study-comparison", name: "study-comparison", component: () => import("@/views/StudyComparisonView.vue") },
         { path: "concepts/import", name: "concept-import", component: () => import("@/views/ConceptImportView.vue") },
         { path: "concepts/:id", name: "concept-summary", component: () => import("@/views/ConceptSummaryView.vue") },
+        { path: "reports/growth", name: "growth-report", component: () => import("@/views/GrowthReportView.vue") },
       ],
     },
   ],

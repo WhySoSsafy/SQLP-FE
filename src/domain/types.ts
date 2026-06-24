@@ -217,6 +217,78 @@ export interface ConceptDetail {
   relatedConcepts?: RelatedConcept[];
 }
 
+/** 성장 리포트 - 분석 기간. */
+export interface GrowthReportPeriod {
+  /** 표시용 라벨 (예: "최근 4주") */
+  label?: string;
+  start?: string;
+  end?: string;
+}
+
+/** 성장 리포트 - 주요 성장 지표 카드 1개. */
+export interface GrowthMetric {
+  key?: string;
+  label: string;
+  /** 현재 값 */
+  current?: number;
+  /** 이전 값 */
+  previous?: number;
+  /** 변화량 (없으면 current-previous로 계산) */
+  delta?: number;
+  /** 단위 (예: "문제", "%", "개") */
+  unit?: string;
+}
+
+/** 성장 리포트 - 성장했거나 아직 취약한 개념 항목. */
+export interface GrowthConcept {
+  id?: string | number;
+  name: string;
+  subject?: string;
+  /** 성장폭(+) 또는 변화량 */
+  delta?: number;
+  /** 현재 점수/이해도 (0~100) */
+  score?: number;
+}
+
+/** 성장 리포트 - 성장 추이 한 지점. */
+export interface GrowthTrendPoint {
+  /** 기간/날짜 라벨 */
+  label: string;
+  /** 0~100 등의 값 */
+  value: number;
+}
+
+/** 성장 리포트 - 다음 학습 추천 항목. */
+export interface GrowthRecommendation {
+  id?: string | number;
+  title: string;
+  reason?: string;
+}
+
+/**
+ * 학습 성장 리포트 API(GET /api/reports/growth/) 응답.
+ *
+ * 백엔드 스키마가 확정 전이라 모든 필드를 optional로 두고, 화면에서는
+ * 존재하는 데이터만 방어적으로 표시한다. (없는 섹션은 렌더하지 않는다)
+ *
+ * TODO(backend): 성장 리포트 응답 스키마(지표 구조/추이 포맷/기간 필터) 확정 시 재확인한다.
+ */
+export interface GrowthReport {
+  title?: string;
+  period?: GrowthReportPeriod;
+  /** 전체 성장 요약 문구 */
+  summary?: string;
+  metrics?: GrowthMetric[];
+  /** 가장 많이 성장한 개념 목록 */
+  improvedConcepts?: GrowthConcept[];
+  /** 여전히 취약한 개념 목록 */
+  weakConcepts?: GrowthConcept[];
+  /** 성장 추이 (예: 주차별 평균 이해도) */
+  trend?: GrowthTrendPoint[];
+  /** 다음 학습 추천 */
+  recommendations?: GrowthRecommendation[];
+}
+
 export interface DashboardSummary {
   weeklyProblemCount: number;
   reviewRequiredCount: number;
