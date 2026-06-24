@@ -29,8 +29,17 @@ export function fetchDashboardSummary(): Promise<DashboardSummary> {
 }
 
 /** 학습 세션별 요약 목록(이해도/복습 필요 수 등 집계 포함). */
-export function fetchSessionSummaries(): Promise<SessionSummary[]> {
-  return apiClient.get<SessionSummary[]>(ANALYTICS_SESSION_SUMMARIES_ENDPOINT);
+export async function fetchSessionSummaries(): Promise<SessionSummary[]> {
+  const raw = await apiClient.get<any[]>(ANALYTICS_SESSION_SUMMARIES_ENDPOINT);
+  return raw.map((item) => ({
+    id: item.id,
+    date: item.session_date ?? item.date ?? "",
+    book: item.book,
+    problemCount: item.problem_count ?? item.problemCount ?? 0,
+    speakers: item.speakers ?? [],
+    averageUnderstanding: item.average_understanding ?? item.averageUnderstanding ?? 0,
+    reviewRequiredCount: item.review_required_count ?? item.reviewRequiredCount ?? 0,
+  }));
 }
 
 /** 참여자별 점수/취약 횟수가 집계된 취약 개념 목록. */

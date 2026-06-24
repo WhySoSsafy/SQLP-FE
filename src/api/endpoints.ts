@@ -43,11 +43,11 @@ export const SESSIONS_ENDPOINT = "/api/sessions/";
  *   - GET /api/analytics/recommendations/ → ReviewRecommendation[]  (?limit=)
  *   - GET /api/analytics/wrong-answers/   → WrongAnswerItem[]
  */
-export const ANALYTICS_DASHBOARD_ENDPOINT = "/api/analytics/dashboard/";
-export const ANALYTICS_SESSION_SUMMARIES_ENDPOINT = "/api/analytics/sessions/";
-export const ANALYTICS_WEAK_CONCEPTS_ENDPOINT = "/api/analytics/weak-concepts/";
-export const ANALYTICS_RECOMMENDATIONS_ENDPOINT = "/api/analytics/recommendations/";
-export const ANALYTICS_WRONG_ANSWERS_ENDPOINT = "/api/analytics/wrong-answers/";
+export const ANALYTICS_DASHBOARD_ENDPOINT = "/api/dashboard/summary/";
+export const ANALYTICS_SESSION_SUMMARIES_ENDPOINT = "/api/sessions/";
+export const ANALYTICS_WEAK_CONCEPTS_ENDPOINT = "/api/weak-concepts/";
+export const ANALYTICS_RECOMMENDATIONS_ENDPOINT = "/api/recommendations/review/";
+export const ANALYTICS_WRONG_ANSWERS_ENDPOINT = "/api/wrong-answers/";
 
 /**
  * 분석 JSON 검증.

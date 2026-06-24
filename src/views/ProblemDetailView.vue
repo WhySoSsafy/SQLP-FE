@@ -1,28 +1,48 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { X } from "lucide-vue-next";
 import type { CSSProperties } from "vue";
-import type { ProblemAnalysis, Understanding } from "@/domain/types";
+import type { LearningSession, ProblemAnalysis, Understanding } from "@/domain/types";
 import { getSelectedOrNewestSession } from "@/domain/storage";
 import { useSessionsStore } from "@/stores/sessions";
+import { fetchSessionDetail } from "@/api";
 
 const sessionsStore = useSessionsStore();
 
-const session = computed(() =>
+const sessionSummary = computed(() =>
   getSelectedOrNewestSession(
     sessionsStore.sessions,
     sessionsStore.selectedSessionId,
   )
 );
 
-const selected = ref<ProblemAnalysis | null>(null);
+const sessionDetail = ref<LearningSession | null>(null);
+const loading = ref(false);
+
+const session = computed(() => sessionDetail.value ?? sessionSummary.value);
+
+async function loadDetail(id: string) {
+  loading.value = true;
+  try {
+    sessionDetail.value = await fetchSessionDetail(id);
+  } catch {
+    sessionDetail.value = null;
+  } finally {
+    loading.value = false;
+  }
+}
 
 watch(
-  () => session.value?.id,
-  () => {
+  () => sessionSummary.value?.id,
+  (id) => {
     selected.value = null;
-  }
+    sessionDetail.value = null;
+    if (id) loadDetail(id);
+  },
+  { immediate: true }
 );
+
+const selected = ref<ProblemAnalysis | null>(null);
 
 function getAvatarColor(index: number): string {
   return ["#C8962A", "#3B82F6", "#10B981", "#8B5CF6", "#EF4444"][index % 5];
@@ -106,7 +126,7 @@ const sectionLabelStyle: CSSProperties = {
               문제별 이해도 — {{ session.book }} ({{ session.session_date }})
             </h3>
             <span :style="{ fontSize: '0.8125rem', color: '#6B7280' }">
-              총 {{ session.problems.length }}문제
+              총 {{ session.problems?.length ?? 0 }}문제
             </span>
           </div>
 
@@ -147,7 +167,7 @@ const sectionLabelStyle: CSSProperties = {
               </thead>
               <tbody>
                 <tr
-                  v-for="p in session.problems"
+                  v-for="p in (session.problems ?? [])"
                   :key="p.id"
                   @click="selected = p"
                   :style="{
