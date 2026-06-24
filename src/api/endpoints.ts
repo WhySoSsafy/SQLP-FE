@@ -29,3 +29,22 @@ export const ME_ENDPOINT = "/api/users/me/";
  * TODO(backend): 최종 명세 확정 시 응답 본문 형태(목록/등록)를 재확인한다.
  */
 export const SESSIONS_ENDPOINT = "/api/sessions/";
+
+/**
+ * 학습 분석/통계 리포트 조회. (모두 GET, 인증 필요)
+ *
+ * 프론트에서 세션 데이터로 직접 계산하던 리포트를 백엔드가 집계해 내려준다.
+ * 기존 /api/sessions/ 네이밍과 일관되게 /api/analytics/* 네임스페이스로 둔다.
+ *
+ * TODO(backend): 아래 경로/응답 형태는 가정값이다. 분석 API 명세 확정 시 재확인한다.
+ *   - GET /api/analytics/dashboard/       → DashboardSummary
+ *   - GET /api/analytics/sessions/        → SessionSummary[]
+ *   - GET /api/analytics/weak-concepts/   → WeakConcept[]
+ *   - GET /api/analytics/recommendations/ → ReviewRecommendation[]  (?limit=)
+ *   - GET /api/analytics/wrong-answers/   → WrongAnswerItem[]
+ */
+export const ANALYTICS_DASHBOARD_ENDPOINT = "/api/analytics/dashboard/";
+export const ANALYTICS_SESSION_SUMMARIES_ENDPOINT = "/api/analytics/sessions/";
+export const ANALYTICS_WEAK_CONCEPTS_ENDPOINT = "/api/analytics/weak-concepts/";
+export const ANALYTICS_RECOMMENDATIONS_ENDPOINT = "/api/analytics/recommendations/";
+export const ANALYTICS_WRONG_ANSWERS_ENDPOINT = "/api/analytics/wrong-answers/";

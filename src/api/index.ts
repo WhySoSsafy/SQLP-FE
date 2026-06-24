@@ -51,11 +51,23 @@ export { refreshAccessToken, setOnAuthExpired } from "./refresh";
 export { login, register } from "./auth";
 export { fetchSessions, createSession } from "./sessions";
 export {
+  fetchDashboardSummary,
+  fetchSessionSummaries,
+  fetchWeakConcepts,
+  fetchReviewRecommendations,
+  fetchWrongAnswerItems,
+} from "./analytics";
+export {
   LOGIN_ENDPOINT,
   REGISTER_ENDPOINT,
   REFRESH_ENDPOINT,
   ME_ENDPOINT,
   SESSIONS_ENDPOINT,
+  ANALYTICS_DASHBOARD_ENDPOINT,
+  ANALYTICS_SESSION_SUMMARIES_ENDPOINT,
+  ANALYTICS_WEAK_CONCEPTS_ENDPOINT,
+  ANALYTICS_RECOMMENDATIONS_ENDPOINT,
+  ANALYTICS_WRONG_ANSWERS_ENDPOINT,
 } from "./endpoints";
 export type {
   ApiErrorEnvelope,

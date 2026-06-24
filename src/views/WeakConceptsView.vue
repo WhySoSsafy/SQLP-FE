@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { CSSProperties } from "vue";
 import VChart from "vue-echarts";
 import { use } from "echarts/core";
@@ -19,8 +19,22 @@ const sessionsStore = useSessionsStore();
 
 const filter = ref<string>("all");
 
-const concepts = computed(() => buildWeakConcepts(sessionsStore.sessions));
+const concepts = ref<WeakConcept[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
 const top5 = computed(() => concepts.value.slice(0, 5));
+
+onMounted(async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    concepts.value = await buildWeakConcepts();
+  } catch {
+    error.value = "취약 개념 데이터를 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const participantNames = computed(() =>
   Array.from(new Set(sessionsStore.sessions.flatMap((session) => session.speakers))),
@@ -105,6 +119,17 @@ const chartOption = computed(() => {
 
 <template>
   <div :style="{ maxWidth: '1200px' }">
+    <!-- Loading / Error -->
+    <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
+      취약 개념 데이터를 불러오는 중...
+    </div>
+    <div
+      v-else-if="error"
+      :style="{ color: '#DC2626', fontSize: '0.875rem', marginBottom: '1rem' }"
+    >
+      {{ error }}
+    </div>
+
     <!-- Filter toggle -->
     <div
       :style="{

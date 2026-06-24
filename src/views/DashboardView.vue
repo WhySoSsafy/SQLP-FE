@@ -1,17 +1,44 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { CSSProperties } from "vue";
 import { useRouter } from "vue-router";
 import { BookOpen, AlertCircle, TrendingUp, Flame, ArrowRight } from "lucide-vue-next";
-import { useSessionsStore } from "@/stores/sessions";
 import { buildDashboardSummary, buildReviewRecommendations, summarizeSessions } from "@/domain/analytics";
+import type { DashboardSummary, ReviewRecommendation, SessionSummary } from "@/domain/types";
 
 const router = useRouter();
-const sessionsStore = useSessionsStore();
 
-const summary = computed(() => buildDashboardSummary(sessionsStore.sessions, new Date()));
-const recommendations = computed(() => buildReviewRecommendations(sessionsStore.sessions));
-const recentSessions = computed(() => summarizeSessions(sessionsStore.sessions).slice(0, 4));
+const EMPTY_SUMMARY: DashboardSummary = {
+  weeklyProblemCount: 0,
+  reviewRequiredCount: 0,
+  averageUnderstanding: 0,
+  studyStreak: 0,
+};
+
+const summary = ref<DashboardSummary>(EMPTY_SUMMARY);
+const recommendations = ref<ReviewRecommendation[]>([]);
+const recentSessions = ref<SessionSummary[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+onMounted(async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const [summaryData, recommendationData, sessionSummaries] = await Promise.all([
+      buildDashboardSummary(),
+      buildReviewRecommendations(),
+      summarizeSessions(),
+    ]);
+    summary.value = summaryData;
+    recommendations.value = recommendationData;
+    recentSessions.value = sessionSummaries.slice(0, 4);
+  } catch {
+    error.value = "대시보드 데이터를 불러오지 못했습니다.";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const sectionHeaderStyle: CSSProperties = {
   display: "flex",
@@ -92,6 +119,17 @@ const iconComponents: Record<string, unknown> = { BookOpen, AlertCircle, Trendin
     <div :style="{ marginBottom: '1.75rem' }">
       <h1 :style="{ color: '#111827', marginBottom: '0.25rem' }">안녕하세요, 세은님 👋</h1>
       <p :style="{ color: '#6B7280', fontSize: '0.875rem' }">오늘도 SQLP 합격을 향해 한 걸음 더 나아가세요!</p>
+    </div>
+
+    <!-- Loading / Error -->
+    <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
+      대시보드 데이터를 불러오는 중...
+    </div>
+    <div
+      v-else-if="error"
+      :style="{ color: '#DC2626', fontSize: '0.875rem', marginBottom: '1rem' }"
+    >
+      {{ error }}
     </div>
 
     <!-- Summary Cards -->
