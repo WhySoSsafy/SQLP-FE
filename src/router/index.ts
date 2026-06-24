@@ -28,6 +28,7 @@ const router = createRouter({
         { path: "calendar", name: "calendar", component: () => import("@/views/CalendarView.vue") },
         { path: "wrong-answers", name: "wrong-answers", component: () => import("@/views/WrongAnswersView.vue") },
         { path: "study-comparison", name: "study-comparison", component: () => import("@/views/StudyComparisonView.vue") },
+        { path: "concepts/import", name: "concept-import", component: () => import("@/views/ConceptImportView.vue") },
         { path: "concepts/:id", name: "concept-summary", component: () => import("@/views/ConceptSummaryView.vue") },
       ],
     },
