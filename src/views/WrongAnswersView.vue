@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { CheckCircle, Circle } from "lucide-vue-next";
 import { buildWrongAnswerItems } from "@/domain/analytics";
+import { understandingLabel } from "@/domain/understanding";
 import type { WrongAnswerItem } from "@/domain/types";
 
 type FilterType = "all" | "wrong" | "vague" | "unknown" | "done";
@@ -209,7 +210,7 @@ function toggle(id: string) {
                   borderRadius: '999px',
                 }"
               >
-                {{ item.understanding }}
+                {{ understandingLabel(item.understanding) }}
               </span>
               <span
                 v-if="item.done"

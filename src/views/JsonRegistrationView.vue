@@ -4,6 +4,7 @@ import type { CSSProperties } from "vue";
 import { Upload, FileJson, CheckCircle, XCircle, Tag } from "lucide-vue-next";
 import type { LearningSession, RawLearningSession, ValidationPreview } from "@/domain/types";
 import { createPreview, normalizeSession } from "@/domain/validation";
+import { normalizeAnalysisUnderstanding } from "@/domain/understanding";
 import { saveSession } from "@/domain/storage";
 import { validateAnalysisJson, toApiError } from "@/api";
 import { useSessionsStore } from "@/stores/sessions";
@@ -103,6 +104,10 @@ const handleValidate = async () => {
     showError([`$: JSON 문법 오류입니다. ${message}`]);
     return;
   }
+
+  // 이해도 변형 값(영어 low/medium/high·숫자·낮음/보통/높음 등)을 백엔드 choices(잘함/애매/모름)로 통일한다.
+  // → validate 요청과 이후 세션 POST payload 모두 표준 이해도 값으로 나간다.
+  parsed = normalizeAnalysisUnderstanding(parsed);
 
   // 2) 백엔드 검증 호출. (응답 스키마 미확정 → 방어적으로 해석)
   validating.value = true;
