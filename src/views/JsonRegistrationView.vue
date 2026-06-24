@@ -2,9 +2,10 @@
 import { ref, computed } from "vue";
 import type { CSSProperties } from "vue";
 import { Upload, FileJson, CheckCircle, XCircle, Tag } from "lucide-vue-next";
-import type { LearningSession, ValidationPreview } from "@/domain/types";
-import { parseAndValidateSession } from "@/domain/validation";
+import type { LearningSession, RawLearningSession, ValidationPreview } from "@/domain/types";
+import { createPreview, normalizeSession } from "@/domain/validation";
 import { saveSession } from "@/domain/storage";
+import { validateAnalysisJson, toApiError } from "@/api";
 import { useSessionsStore } from "@/stores/sessions";
 
 const sessions = useSessionsStore();
@@ -52,8 +53,10 @@ const isDragging = ref(false);
 const fileName = ref<string | null>(null);
 const validateStatus = ref<ValidateStatus>(null);
 const validationErrors = ref<string[]>([]);
+const serverMessage = ref<string | null>(null);
 const preview = ref<ValidationPreview | null>(null);
 const validatedSession = ref<LearningSession | null>(null);
+const validating = ref(false);
 const registered = ref(false);
 const registering = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -69,6 +72,7 @@ const registerDisabled = computed(
 const resetValidation = () => {
   validateStatus.value = null;
   validationErrors.value = [];
+  serverMessage.value = null;
   preview.value = null;
   validatedSession.value = null;
   registered.value = false;
@@ -77,24 +81,69 @@ const resetValidation = () => {
 const showError = (errors: string[]) => {
   validateStatus.value = "error";
   validationErrors.value = errors;
+  serverMessage.value = null;
   preview.value = null;
   validatedSession.value = null;
   registered.value = false;
 };
 
-const handleValidate = () => {
-  const result = parseAndValidateSession(jsonText.value);
+const handleValidate = async () => {
+  if (validating.value) return;
 
-  if (!result.ok) {
-    showError(result.errors.map((error) => `${error.path}: ${error.message}`));
+  // 1) API 호출 전 프론트 기본 JSON 파싱 가드.
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonText.value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "JSON 파싱에 실패했습니다.";
+    showError([`$: JSON 문법 오류입니다. ${message}`]);
     return;
   }
 
-  validateStatus.value = "ok";
-  validationErrors.value = [];
-  preview.value = result.preview ?? null;
-  validatedSession.value = result.session ?? null;
-  registered.value = false;
+  // 2) 백엔드 검증 호출. (응답 스키마 미확정 → 방어적으로 해석)
+  validating.value = true;
+  try {
+    const response = await validateAnalysisJson(parsed);
+
+    const serverErrors = Array.isArray(response?.errors) ? response.errors : [];
+    const isOk = response?.ok !== false && serverErrors.length === 0;
+
+    if (!isOk) {
+      showError(
+        serverErrors.length > 0
+          ? serverErrors.map((error) => `${error.path}: ${error.message}`)
+          : [response?.message ?? "JSON 검증에 실패했습니다."],
+      );
+      return;
+    }
+
+    // 등록(saveSession)에 필요한 세션 객체 확보: 백엔드가 주면 그대로, 아니면 클라이언트에서 정규화.
+    let session: LearningSession | null = response?.session ?? null;
+    if (!session) {
+      try {
+        session = normalizeSession(parsed as RawLearningSession);
+      } catch {
+        session = null;
+      }
+    }
+
+    validateStatus.value = "ok";
+    validationErrors.value = [];
+    serverMessage.value = response?.message ?? null;
+    preview.value = session ? createPreview(session) : response?.preview ?? null;
+    validatedSession.value = session;
+    registered.value = false;
+  } catch (error) {
+    // API 에러(검증 실패 envelope 포함)도 화면이 깨지지 않게 처리한다.
+    const apiError = toApiError(error);
+    showError(
+      apiError.fieldErrors.length > 0
+        ? apiError.fieldErrors.map((field) => `${field.path}: ${field.message}`)
+        : [apiError.message || "JSON 검증 요청에 실패했습니다."],
+    );
+  } finally {
+    validating.value = false;
+  }
 };
 
 const handleRegister = async () => {
@@ -159,7 +208,8 @@ const handleTabChange = (tab: Tab) => {
 };
 
 const previewRows = computed(() => {
-  if (!preview.value || !validatedSession.value) return [];
+  if (!preview.value) return [];
+  const speakers = validatedSession.value?.speakers ?? [];
   return [
     { label: "검증 상태", value: "정상" },
     { label: "학습 날짜", value: preview.value.sessionDate },
@@ -167,7 +217,10 @@ const previewRows = computed(() => {
     { label: "문제 수", value: `${preview.value.problemCount}문제` },
     {
       label: "참여자 수",
-      value: `${preview.value.participantCount}명 (${validatedSession.value.speakers.join(", ")})`,
+      value:
+        speakers.length > 0
+          ? `${preview.value.participantCount}명 (${speakers.join(", ")})`
+          : `${preview.value.participantCount}명`,
     },
   ];
 });
@@ -329,6 +382,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
         <!-- Buttons -->
         <div :style="{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }">
           <button
+            :disabled="validating"
             :style="{
               padding: '0.6875rem 1.25rem',
               border: '1.5px solid #C8962A',
@@ -337,7 +391,8 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
               color: '#C8962A',
               fontSize: '0.875rem',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: validating ? 'not-allowed' : 'pointer',
+              opacity: validating ? 0.6 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: '0.375rem',
@@ -345,7 +400,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
             @click="handleValidate"
           >
             <CheckCircle :size="16" />
-            형식 검증하기
+            {{ validating ? "검증 중..." : "형식 검증하기" }}
           </button>
           <button
             :disabled="registerDisabled"
@@ -384,7 +439,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
 
         <!-- Validation success + preview -->
         <div
-          v-if="validateStatus === 'ok' && preview && validatedSession && !registered"
+          v-if="validateStatus === 'ok' && preview && !registered"
           :style="{
             marginTop: '1.25rem',
             backgroundColor: '#F0FDF4',
@@ -401,7 +456,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
           <CheckCircle :size="18" :style="{ flexShrink: 0, marginTop: '0.0625rem' }" />
           <div>
             <div :style="{ fontWeight: 600, marginBottom: '0.875rem' }">
-              JSON 형식이 올바릅니다. 학습 기록으로 등록할 수 있어요.
+              {{ serverMessage ?? "JSON 검증을 통과했습니다. 학습 기록으로 등록할 수 있어요." }}
             </div>
             <!-- Preview -->
             <div
@@ -439,7 +494,10 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
                   <span :style="{ fontSize: '0.8125rem', fontWeight: 500, color: '#111827' }">{{ row.value }}</span>
                 </div>
               </div>
-              <div :style="{ marginTop: '0.75rem' }">
+              <div
+                v-if="preview.conceptTags && preview.conceptTags.length"
+                :style="{ marginTop: '0.75rem' }"
+              >
                 <span
                   :style="{
                     fontSize: '0.8125rem',

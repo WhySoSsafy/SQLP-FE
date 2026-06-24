@@ -57,6 +57,7 @@ export {
   fetchReviewRecommendations,
   fetchWrongAnswerItems,
 } from "./analytics";
+export { validateAnalysisJson } from "./analysis";
 export {
   LOGIN_ENDPOINT,
   REGISTER_ENDPOINT,
@@ -68,6 +69,7 @@ export {
   ANALYTICS_WEAK_CONCEPTS_ENDPOINT,
   ANALYTICS_RECOMMENDATIONS_ENDPOINT,
   ANALYTICS_WRONG_ANSWERS_ENDPOINT,
+  ANALYSIS_VALIDATE_ENDPOINT,
 } from "./endpoints";
 export type {
   ApiErrorEnvelope,
