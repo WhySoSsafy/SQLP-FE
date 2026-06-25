@@ -49,7 +49,7 @@ const cardStyle: CSSProperties = {
 </script>
 
 <template>
-  <div :style="{ maxWidth: '860px' }">
+  <div :style="{ width: '100%' }">
     <!-- Back -->
     <button
       :style="{

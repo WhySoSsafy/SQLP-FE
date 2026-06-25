@@ -86,6 +86,10 @@ export const STUDY_COMPARISON_ENDPOINT = "/api/study-comparison/";
  */
 export const CONCEPT_DETAIL_ENDPOINT = (id: string | number) => `/api/concepts/${id}/`;
 
+export const PARTICIPANT_COMMENTS_ENDPOINT = (pid: number | string) => `/api/participants/${pid}/comments/`;
+export const COMMENT_DETAIL_ENDPOINT = (id: number | string) => `/api/comments/${id}/`;
+export const CONCEPT_CREATE_ENDPOINT = "/api/concepts/";
+
 /**
  * 학습 성장 리포트 조회.
  *   GET → GrowthReport

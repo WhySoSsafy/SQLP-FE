@@ -6,7 +6,7 @@ import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { BarChart } from "echarts/charts";
 import { GridComponent, TooltipComponent, LegendComponent } from "echarts/components";
-import { AlertTriangle, RefreshCw } from "lucide-vue-next";
+import { AlertTriangle } from "lucide-vue-next";
 import { useSessionsStore } from "@/stores/sessions";
 import { buildWeakConcepts } from "@/domain/analytics";
 import type { WeakConcept } from "@/domain/types";
@@ -70,10 +70,20 @@ const weakScore = (concept: WeakConcept): number =>
     ? concept.averageScore
     : concept.scoreByParticipant[activeFilter.value] ?? 0;
 
-const weakItems = (concept: WeakConcept): number =>
-  activeFilter.value === "all"
-    ? Object.values(concept.weakCountByParticipant).reduce((sum, count) => sum + count, 0)
-    : concept.weakCountByParticipant[activeFilter.value] ?? 0;
+// 참여자별 취약 개념 리스트: 그 참여자의 이해도(scoreByParticipant) 낮은 순.
+function participantWeakList(name: string) {
+  return [...concepts.value]
+    .map((c) => ({
+      name: c.name,
+      score: c.scoreByParticipant[name] ?? 0,
+      weak: c.weakCountByParticipant[name] ?? 0,
+      recommend: c.recommend,
+    }))
+    .sort((a, b) => a.score - b.score);
+}
+
+// 차트/참여자 칼럼에 쓸 상위 2명 (보통 세은·수철).
+const topParticipants = computed(() => participantNames.value.slice(0, 2));
 
 // series = one bar per participant (+ 평균 when filter is 'all'):
 // when activeFilter !== "all", only the matching participant is shown (no 평균)
@@ -115,10 +125,13 @@ const chartOption = computed(() => {
   };
 });
 
+const RANK_BG = ["#FCA5A5", "#FDBA74", "#FCD34D", "#FDE68A", "#FEF3C7"];
+const rankBg = (i: number): string => RANK_BG[i] ?? "#FEF3C7";
+
 </script>
 
 <template>
-  <div :style="{ maxWidth: '1200px' }">
+  <div :style="{ width: '100%' }">
     <!-- Loading / Error -->
     <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
       취약 개념 데이터를 불러오는 중...
@@ -180,50 +193,60 @@ const chartOption = computed(() => {
     </div>
 
     <template v-else>
-      <!-- TOP 5 cards -->
-      <div :style="{ marginBottom: '1.75rem' }">
-        <h3 :style="{ color: '#111827', marginBottom: '0.875rem' }">
-          <AlertTriangle
-            :size="16"
-            color="#C8962A"
-            :style="{ display: 'inline', marginRight: '0.375rem', verticalAlign: 'middle' }"
-          />
-          취약 개념 TOP 5
-        </h3>
+      <!-- Unified 5-column grid: TOP5 (col1, rows 1-2) | chart (cols 2-5, row1) | recs (cols 2-5, row2) -->
+      <div
+        :style="{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: '1.25rem',
+          alignItems: 'start',
+        } as CSSProperties"
+      >
+        <!-- LEFT: TOP 5 cards stacked vertically, spanning both rows -->
         <div
           :style="{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '0.875rem',
+            gridColumn: '1',
+            gridRow: '1 / span 2',
+            display: 'flex',
+            flexDirection: 'column' as CSSProperties['flexDirection'],
+            gap: '0.75rem',
           }"
         >
+          <h3 :style="{ color: '#111827', margin: '0 0 0.25rem 0', fontSize: '0.9375rem' }">
+            <AlertTriangle
+              :size="15"
+              color="#C8962A"
+              :style="{ display: 'inline', marginRight: '0.375rem', verticalAlign: 'middle' }"
+            />
+            취약 개념 TOP 5
+          </h3>
           <div
             v-for="(c, i) in top5"
             :key="c.name"
             :style="{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: rankBg(i),
               borderRadius: '12px',
-              padding: '1.125rem',
+              padding: '1rem',
               boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              borderTop: '3px solid #C8962A',
               position: 'relative',
             } as CSSProperties"
           >
+            <!-- Rank badge -->
             <div
               :style="{
                 position: 'absolute',
-                top: '0.75rem',
-                right: '0.875rem',
+                top: '0.625rem',
+                right: '0.75rem',
                 width: '22px',
                 height: '22px',
                 borderRadius: '50%',
-                backgroundColor: i === 0 ? '#C8962A' : '#F3F4F6',
+                backgroundColor: i === 0 ? '#C8962A' : 'rgba(255,255,255,0.75)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '0.6875rem',
                 fontWeight: 700,
-                color: i === 0 ? '#FFFFFF' : '#6B7280',
+                color: i === 0 ? '#FFFFFF' : '#374151',
               } as CSSProperties"
             >
               {{ i + 1 }}
@@ -232,117 +255,119 @@ const chartOption = computed(() => {
               :style="{
                 fontWeight: 700,
                 color: '#111827',
-                marginBottom: '0.5rem',
+                marginBottom: '0.375rem',
                 paddingRight: '1.5rem',
+                fontSize: '0.8125rem',
               }"
             >
               {{ c.name }}
             </div>
             <div
               :style="{
-                fontSize: '1.75rem',
+                fontSize: '1.5rem',
                 fontWeight: 700,
-                color: weakScore(c) < 40 ? '#EF4444' : '#C8962A',
+                color: weakScore(c) < 40 ? '#DC2626' : '#92690B',
               }"
             >
               {{ weakScore(c) }}%
             </div>
-            <div :style="{ fontSize: '0.75rem', color: '#9CA3AF' }">이해도</div>
+            <div :style="{ fontSize: '0.6875rem', color: '#6B7280' }">이해도</div>
           </div>
         </div>
-      </div>
 
-      <!-- Chart + Sidebar -->
-      <div
-        :style="{
-          display: 'grid',
-          gridTemplateColumns: '1fr 300px',
-          gap: '1.5rem',
-        }"
-      >
-        <!-- Bar Chart -->
+        <!-- TOP-RIGHT: Bar chart spanning cols 2-5, row 1 -->
         <div
           :style="{
+            gridColumn: '2 / span 4',
+            gridRow: '1',
             backgroundColor: '#FFFFFF',
             borderRadius: '12px',
             padding: '1.5rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          }"
+          } as CSSProperties"
         >
           <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">개념별 이해도 비교</h3>
           <VChart :option="chartOption" :style="{ height: '280px', width: '100%' }" autoresize />
         </div>
 
-        <!-- Review List -->
+        <!-- BOTTOM-RIGHT: person[0] recommendation panel, cols 2-3, row 2 -->
         <div
+          v-if="topParticipants.length >= 1"
           :style="{
+            gridColumn: topParticipants.length === 1 ? '2 / span 4' : '2 / span 2',
+            gridRow: '2',
             backgroundColor: '#FFFFFF',
             borderRadius: '12px',
-            padding: '1.5rem',
+            padding: '1.25rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          }"
+          } as CSSProperties"
         >
-          <h3 :style="{ color: '#111827', marginBottom: '1.125rem' }">개념별 복습 추천</h3>
+          <h3 :style="{ color: '#111827', marginBottom: '1rem', fontSize: '0.9375rem' }">
+            {{ topParticipants[0] }} 복습 추천
+          </h3>
           <div
             :style="{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-            }"
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem',
+            } as CSSProperties"
           >
             <div
-              v-for="c in concepts"
-              :key="c.name"
+              v-for="c in participantWeakList(topParticipants[0])"
+              :key="`${topParticipants[0]}-${c.name}`"
               :style="{
                 borderRadius: '8px',
-                padding: '0.75rem',
+                padding: '0.625rem 0.75rem',
                 backgroundColor: c.recommend ? '#FEF8EC' : '#F9FAFB',
                 border: c.recommend ? '1px solid #FDE68A' : '1px solid #F3F4F6',
-              }"
+              } as CSSProperties"
             >
-              <div
-                :style="{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.375rem',
-                }"
-              >
-                <span
-                  :style="{ fontWeight: 600, fontSize: '0.875rem', color: '#111827' }"
-                >{{ c.name }}</span>
-                <span
-                  v-if="c.recommend"
-                  :style="{
-                    backgroundColor: '#FEF3C7',
-                    color: '#92690B',
-                    fontSize: '0.6875rem',
-                    fontWeight: 600,
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '999px',
-                  }"
-                >추천</span>
+              <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }">
+                <span :style="{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827' }">{{ c.name }}</span>
+                <span :style="{ fontSize: '0.8125rem', fontWeight: 700, color: c.score < 40 ? '#EF4444' : c.score < 60 ? '#C8962A' : '#10B981' }">{{ c.score }}%</span>
               </div>
-              <div
-                :style="{
-                  fontSize: '0.75rem',
-                  color: '#6B7280',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.125rem',
-                } as CSSProperties"
-              >
-                <span>전체 {{ c.totalProblems }}문제 · 취약 {{ weakItems(c) }}문제</span>
-                <span
-                  :style="{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                  } as CSSProperties"
-                >
-                  <RefreshCw :size="10" /> 최근 복습: {{ c.lastReviewDate }}
-                </span>
+              <div :style="{ fontSize: '0.6875rem', color: '#9CA3AF', marginTop: '0.1875rem' }">취약 {{ c.weak }}문제</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTTOM-RIGHT: person[1] recommendation panel, cols 4-5, row 2 -->
+        <div
+          v-if="topParticipants.length >= 2"
+          :style="{
+            gridColumn: '4 / span 2',
+            gridRow: '2',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          } as CSSProperties"
+        >
+          <h3 :style="{ color: '#111827', marginBottom: '1rem', fontSize: '0.9375rem' }">
+            {{ topParticipants[1] }} 복습 추천
+          </h3>
+          <div
+            :style="{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '0.5rem',
+            } as CSSProperties"
+          >
+            <div
+              v-for="c in participantWeakList(topParticipants[1])"
+              :key="`${topParticipants[1]}-${c.name}`"
+              :style="{
+                borderRadius: '8px',
+                padding: '0.625rem 0.75rem',
+                backgroundColor: c.recommend ? '#FEF8EC' : '#F9FAFB',
+                border: c.recommend ? '1px solid #FDE68A' : '1px solid #F3F4F6',
+              } as CSSProperties"
+            >
+              <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }">
+                <span :style="{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827' }">{{ c.name }}</span>
+                <span :style="{ fontSize: '0.8125rem', fontWeight: 700, color: c.score < 40 ? '#EF4444' : c.score < 60 ? '#C8962A' : '#10B981' }">{{ c.score }}%</span>
               </div>
+              <div :style="{ fontSize: '0.6875rem', color: '#9CA3AF', marginTop: '0.1875rem' }">취약 {{ c.weak }}문제</div>
             </div>
           </div>
         </div>

@@ -27,6 +27,10 @@ export function normalizeUnderstandingValue(input: unknown): Understanding | nul
 
   switch (input.trim().toLowerCase()) {
     case "잘함":
+    case "이해":
+    case "이해함":
+    case "understand":
+    case "understood":
     case "good":
     case "high":
     case "높음":
@@ -64,6 +68,30 @@ export function understandingLabel(value: unknown): string {
   const normalized = normalizeUnderstandingValue(value);
   if (normalized) return normalized;
   return typeof value === "string" && value.trim().length > 0 ? value : "-";
+}
+
+/**
+ * 이해도 배지/태그 색상 톤. 세 값(잘함/애매/모름)이 항상 서로 다른 색을 갖도록 한다.
+ * - 잘함(이해) → 초록, 애매 → 주황, 모름 → 빨강
+ * 변형 값("이해" 등)도 normalize를 거치므로 모름과 같은 색으로 빠지지 않는다.
+ * 표준화 불가한 값은 회색(중립)으로 표시해 빨강(모름)과 섞이지 않게 한다.
+ */
+export interface UnderstandingTone {
+  bg: string;
+  color: string;
+}
+
+export function understandingTone(value: unknown): UnderstandingTone {
+  switch (normalizeUnderstandingValue(value)) {
+    case "잘함":
+      return { bg: "#DCFCE7", color: "#15803D" }; // green
+    case "애매":
+      return { bg: "#FFEDD5", color: "#C2410C" }; // orange
+    case "모름":
+      return { bg: "#FEE2E2", color: "#B91C1C" }; // red
+    default:
+      return { bg: "#F3F4F6", color: "#6B7280" }; // neutral gray
+  }
 }
 
 /**

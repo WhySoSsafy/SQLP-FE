@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { Search, ChevronRight, Filter } from "lucide-vue-next";
+import { Search, ChevronRight } from "lucide-vue-next";
 import type { CSSProperties } from "vue";
+import VChart from "vue-echarts";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { LineChart, BarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent, LegendComponent } from "echarts/components";
 import { useSessionsStore } from "@/stores/sessions";
 import { summarizeSessions } from "@/domain/analytics";
 import type { SessionSummary } from "@/domain/types";
+
+use([CanvasRenderer, LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent]);
 
 const sessions = useSessionsStore();
 const router = useRouter();
 
 const search = ref("");
-const underFilter = ref<"all" | "high" | "mid" | "low">("all");
 
 const summaries = ref<SessionSummary[]>([]);
 const loading = ref(false);
@@ -30,18 +36,9 @@ onMounted(async () => {
 });
 
 const filtered = computed(() =>
-  summaries.value.filter((s) => {
-    const matchSearch = s.book.toLowerCase().includes(search.value.toLowerCase());
-    const matchUnder =
-      underFilter.value === "all"
-        ? true
-        : underFilter.value === "high"
-        ? s.averageUnderstanding >= 75
-        : underFilter.value === "mid"
-        ? s.averageUnderstanding >= 60 && s.averageUnderstanding < 75
-        : s.averageUnderstanding < 60;
-    return matchSearch && matchUnder;
-  })
+  summaries.value.filter((s) =>
+    s.book.toLowerCase().includes(search.value.toLowerCase())
+  )
 );
 
 function avgColor(avg: number): string {
@@ -53,55 +50,81 @@ function handleSelectSession(id: string) {
   router.push({ name: "problem-detail" });
 }
 
-const filterOptions = [
-  { key: "all" as const, label: "전체" },
-  { key: "high" as const, label: "잘함 (75%↑)" },
-  { key: "mid" as const, label: "애매 (60~75%)" },
-  { key: "low" as const, label: "취약 (60%↓)" },
-] as const;
+const outerStyle: CSSProperties = { width: "100%" };
 
-const outerStyle: CSSProperties = { maxWidth: "900px" };
-
-const filterBarStyle: CSSProperties = {
+const chartPanelStyle: CSSProperties = {
   backgroundColor: "#FFFFFF",
   borderRadius: "12px",
-  padding: "1rem 1.25rem",
+  padding: "1.5rem",
   boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-  marginBottom: "1.25rem",
-  display: "flex",
-  gap: "1rem",
-  alignItems: "center",
-  flexWrap: "wrap",
 };
 
-const searchWrapStyle: CSSProperties = {
-  position: "relative",
-  flex: "1",
-  minWidth: "200px",
-};
+// 추이 차트는 날짜 오름차순으로 그린다. (검색 필터를 그대로 반영)
+const trendSeriesData = computed(() =>
+  [...filtered.value].sort((a, b) => a.date.localeCompare(b.date)),
+);
 
-const searchIconStyle: CSSProperties = {
-  position: "absolute",
-  left: "0.75rem",
-  top: "50%",
-  transform: "translateY(-50%)",
-};
+const trendOption = computed(() => {
+  const data = trendSeriesData.value;
+  return {
+    grid: { top: 16, right: 16, left: 8, bottom: 24, containLabel: true },
+    tooltip: { trigger: "axis", valueFormatter: (v: number) => `${v}%` },
+    xAxis: {
+      type: "category",
+      data: data.map((s) => s.date.slice(5)),
+      axisLabel: { fontSize: 11, color: "#6B7280" },
+    },
+    yAxis: {
+      type: "value",
+      min: 0,
+      max: 100,
+      axisLabel: { fontSize: 11, color: "#6B7280", formatter: "{value}%" },
+      splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
+    },
+    series: [
+      {
+        name: "평균 이해도",
+        type: "line",
+        smooth: true,
+        data: data.map((s) => s.averageUnderstanding),
+        itemStyle: { color: "#C8962A" },
+        lineStyle: { color: "#C8962A", width: 2 },
+        areaStyle: { color: "rgba(200,150,42,0.08)" },
+      },
+    ],
+  };
+});
 
-const inputStyle: CSSProperties = {
-  width: "100%",
-  padding: "0.5625rem 0.75rem 0.5625rem 2.25rem",
-  border: "1px solid #E5E7EB",
-  borderRadius: "8px",
-  fontSize: "0.875rem",
-  outline: "none",
-  boxSizing: "border-box",
-};
+const reviewOption = computed(() => {
+  const data = trendSeriesData.value;
+  return {
+    grid: { top: 16, right: 16, left: 8, bottom: 24, containLabel: true },
+    tooltip: { trigger: "axis" },
+    xAxis: {
+      type: "category",
+      data: data.map((s) => s.date.slice(5)),
+      axisLabel: { fontSize: 11, color: "#6B7280" },
+    },
+    yAxis: {
+      type: "value",
+      min: 0,
+      axisLabel: { fontSize: 11, color: "#9CA3AF" },
+      splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
+    },
+    series: [
+      {
+        name: "복습 필요",
+        type: "line",
+        smooth: true,
+        data: data.map((s) => s.reviewRequiredCount),
+        itemStyle: { color: "#EF4444" },
+        lineStyle: { color: "#EF4444", width: 2 },
+        areaStyle: { color: "rgba(239,68,68,0.10)" },
+      },
+    ],
+  };
+});
 
-const filterGroupStyle: CSSProperties = {
-  display: "flex",
-  gap: "0.5rem",
-  alignItems: "center",
-};
 
 const countStyle: CSSProperties = {
   fontSize: "0.875rem",
@@ -188,35 +211,41 @@ const barTrackStyle: CSSProperties = {
       {{ error }}
     </div>
 
-    <!-- Filters -->
-    <div :style="filterBarStyle">
-      <div :style="searchWrapStyle">
-        <Search :size="16" color="#9CA3AF" :style="searchIconStyle" />
+    <!-- 2열: 세션 목록(좌) + 이해도 추이(우) -->
+    <div :style="{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'start' }">
+      <!-- 왼쪽: 세션 목록 -->
+      <div :style="{ minWidth: 0 }">
+        <!-- Search -->
+    <div
+      :style="{
+        backgroundColor: '#FFFFFF',
+        borderRadius: '12px',
+        padding: '1rem 1.25rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        marginBottom: '1.25rem',
+        display: 'flex',
+        alignItems: 'center',
+      }"
+    >
+      <div :style="{ position: 'relative', flex: '1', minWidth: '200px' }">
+        <Search
+          :size="16"
+          color="#9CA3AF"
+          :style="{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }"
+        />
         <input
           v-model="search"
           placeholder="문제집명 검색..."
-          :style="inputStyle"
-        />
-      </div>
-      <div :style="filterGroupStyle">
-        <Filter :size="15" color="#6B7280" />
-        <button
-          v-for="f in filterOptions"
-          :key="f.key"
-          @click="underFilter = f.key"
           :style="{
-            padding: '0.4375rem 0.875rem',
+            width: '100%',
+            padding: '0.5625rem 0.75rem 0.5625rem 2.25rem',
+            border: '1px solid #E5E7EB',
             borderRadius: '8px',
-            border: underFilter === f.key ? '1.5px solid #C8962A' : '1px solid #E5E7EB',
-            backgroundColor: underFilter === f.key ? '#FEF8EC' : '#FFFFFF',
-            color: underFilter === f.key ? '#C8962A' : '#6B7280',
-            fontSize: '0.8125rem',
-            fontWeight: underFilter === f.key ? 600 : 400,
-            cursor: 'pointer',
+            fontSize: '0.875rem',
+            outline: 'none',
+            boxSizing: 'border-box',
           }"
-        >
-          {{ f.label }}
-        </button>
+        />
       </div>
     </div>
 
@@ -283,6 +312,36 @@ const barTrackStyle: CSSProperties = {
         </div>
 
         <ChevronRight :size="18" color="#D1D5DB" />
+      </div>
+    </div>
+      </div>
+
+      <!-- 오른쪽: 차트 2개 (이해도 추이 + 복습 필요 추이) -->
+      <div :style="{ display: 'flex', flexDirection: 'column' as CSSProperties['flexDirection'], gap: '1.5rem', position: 'sticky', top: '1.75rem' }">
+        <div :style="chartPanelStyle">
+          <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">세션별 이해도 추이</h3>
+          <VChart
+            v-if="trendSeriesData.length"
+            :option="trendOption"
+            :style="{ height: '260px', width: '100%' }"
+            autoresize
+          />
+          <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+            표시할 세션이 없습니다.
+          </div>
+        </div>
+        <div :style="chartPanelStyle">
+          <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">복습 필요 추이</h3>
+          <VChart
+            v-if="trendSeriesData.length"
+            :option="reviewOption"
+            :style="{ height: '260px', width: '100%' }"
+            autoresize
+          />
+          <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+            표시할 세션이 없습니다.
+          </div>
+        </div>
       </div>
     </div>
   </div>

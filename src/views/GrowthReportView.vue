@@ -158,7 +158,7 @@ const sectionTitleStyle: CSSProperties = {
 </script>
 
 <template>
-  <div :style="{ maxWidth: '960px' }">
+  <div :style="{ width: '100%' }">
     <!-- Loading -->
     <div v-if="loading" :style="cardStyle">
       <div :style="{ color: '#6B7280', fontSize: '0.875rem' }">성장 리포트를 불러오는 중...</div>
