@@ -190,8 +190,8 @@ function toggle(id: string) {
               <span :style="{ fontWeight: 700, color: '#111827' }">{{ item.problemNumber }}번</span>
               <span
                 :style="{
-                  backgroundColor: item.person === '세은' ? '#FEF3C7' : '#EFF6FF',
-                  color: item.person === '세은' ? '#92690B' : '#1D4ED8',
+                  backgroundColor: '#FEF8EC',
+                  color: '#92690B',
                   fontSize: '0.75rem',
                   fontWeight: 600,
                   padding: '0.125rem 0.5rem',
@@ -202,8 +202,8 @@ function toggle(id: string) {
               </span>
               <span
                 :style="{
-                  backgroundColor: item.understanding === '모름' ? '#FEF2F2' : '#FEF3C7',
-                  color: item.understanding === '모름' ? '#991B1B' : '#92690B',
+                  backgroundColor: item.understanding === '잘함' ? '#DCFCE7' : item.understanding === '애매' ? '#FFEDD5' : '#FEE2E2',
+                  color: item.understanding === '잘함' ? '#15803D' : item.understanding === '애매' ? '#C2410C' : '#B91C1C',
                   fontSize: '0.75rem',
                   fontWeight: 600,
                   padding: '0.125rem 0.5rem',
@@ -263,7 +263,8 @@ function toggle(id: string) {
 
             <div
               :style="{
-                backgroundColor: '#F9FAFB',
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E5E7EB',
                 borderRadius: '8px',
                 padding: '0.75rem',
                 fontSize: '0.8125rem',
