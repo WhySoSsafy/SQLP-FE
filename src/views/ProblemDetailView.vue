@@ -40,6 +40,7 @@ async function loadDetail(id: string) {
 }
 
 const selected = ref<ProblemAnalysis | null>(null);
+const selectedNodeId = ref<string | null>(null);
 
 watch(
   () => sessionSummary.value?.id,
@@ -112,14 +113,15 @@ const graphOption = computed(() => {
   const links: Record<string, unknown>[] = [];
   const conceptSeen = new Set<string>();
 
+  const sel = selectedNodeId.value;
   for (const p of problems) {
     const pid = `p:${p.problem_number}`;
-    nodes.push({ id: pid, name: `${p.problem_number}번`, category: 0, symbolSize: 34 });
+    nodes.push({ id: pid, name: `${p.problem_number}번`, category: 0, symbolSize: sel === pid ? 48 : 34 });
     for (const c of p.concepts) {
       const cid = `c:${c}`;
       if (!conceptSeen.has(cid)) {
         conceptSeen.add(cid);
-        nodes.push({ id: cid, name: c, category: 1, symbolSize: 20 });
+        nodes.push({ id: cid, name: c, category: 1, symbolSize: sel === cid ? 32 : 20 });
       }
       links.push({ source: pid, target: cid });
     }
@@ -137,14 +139,24 @@ const graphOption = computed(() => {
         layout: "force",
         roam: true,
         draggable: true,
+        // 비강조 노드/선이 즉시 사라지지 않고 빠르게 자연스럽게 페이드 (깜빡임 완화).
+        // float(force 시뮬레이션)은 그대로 유지한다.
+        stateAnimation: { duration: 300, easing: "cubicOut" },
         label: { show: true, position: "right", fontSize: 11, color: "#374151" },
         force: { repulsion: 110, edgeLength: 70, gravity: 0.08 },
         categories: [
           { name: "문제", itemStyle: { color: "#C8962A" } },
           { name: "개념", itemStyle: { color: "#60A5FA" } },
         ],
-        lineStyle: { color: "#D1D5DB", width: 1, curveness: 0 },
-        emphasis: { focus: "adjacency", lineStyle: { width: 2 } },
+        // 연결선을 더 진하고 굵게 → 잘 보이게.
+        lineStyle: { color: "#9CA3AF", width: 1.5, opacity: 0.7, curveness: 0 },
+        emphasis: { focus: "adjacency", lineStyle: { width: 2.5, opacity: 1 } },
+        // 호버 시 비인접 노드/선을 부드럽게 흐리게.
+        blur: {
+          itemStyle: { opacity: 0.15 },
+          lineStyle: { opacity: 0.06 },
+          label: { opacity: 0.15 },
+        },
         data: nodes,
         links,
       },
@@ -152,10 +164,14 @@ const graphOption = computed(() => {
   };
 });
 
-// 문제 노드 클릭 시 해당 문제 상세를 연다.
+// 노드 클릭: 선택 강조(더 크게) + 문제 노드면 상세도 연다. 빈 공간 클릭은 선택 해제.
 function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
-  if (params.dataType !== "node") return;
+  if (params.dataType !== "node") {
+    selectedNodeId.value = null;
+    return;
+  }
   const id = String(params.data?.id ?? "");
+  selectedNodeId.value = id;
   if (!id.startsWith("p:")) return;
   const num = Number(id.slice(2));
   const p = (session.value?.problems ?? []).find((x) => x.problem_number === num);
