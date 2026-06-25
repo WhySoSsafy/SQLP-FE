@@ -4,7 +4,8 @@ import type { CSSProperties } from "vue";
 import { useRouter } from "vue-router";
 import { BookOpen, AlertCircle, TrendingUp, Flame, ArrowRight, ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { buildDashboardSummary, buildReviewRecommendations, summarizeSessions } from "@/domain/analytics";
-import { fetchCalendar } from "@/api";
+import { fetchCalendar, fetchSessionDetail } from "@/api";
+import { useSessionsStore } from "@/stores/sessions";
 import type { DashboardSummary, ReviewRecommendation, SessionSummary, CalendarDayEntry, CalendarMonthSummary } from "@/domain/types";
 
 const router = useRouter();
@@ -105,6 +106,39 @@ const nextMonth = () => {
   if (calMonth.value === 12) { calYear.value += 1; calMonth.value = 1; }
   else calMonth.value += 1;
 };
+
+const sessionsStore = useSessionsStore();
+const calParticipants = ref<{ name: string; pct: number }[]>([]);
+
+// 선택한 날짜의 세션 상세를 조회해 참여자별 평균 이해도(%)를 계산한다.
+async function loadDayParticipants(date: string) {
+  calParticipants.value = [];
+  const session = sessionsStore.sessions.find((s) => s.session_date === date);
+  if (!session) return;
+  try {
+    const detail = await fetchSessionDetail(session.id);
+    const scoreMap: Record<string, { sum: number; n: number }> = {};
+    for (const p of detail.problems ?? []) {
+      for (const pt of p.participants ?? []) {
+        const v = pt.understanding === "잘함" ? 100 : pt.understanding === "애매" ? 50 : 0;
+        if (!scoreMap[pt.name]) scoreMap[pt.name] = { sum: 0, n: 0 };
+        scoreMap[pt.name].sum += v;
+        scoreMap[pt.name].n += 1;
+      }
+    }
+    calParticipants.value = Object.entries(scoreMap).map(([name, s]) => ({
+      name,
+      pct: s.n ? Math.round(s.sum / s.n) : 0,
+    }));
+  } catch {
+    calParticipants.value = [];
+  }
+}
+
+watch(calSelectedDate, (d) => {
+  calParticipants.value = [];
+  if (d) loadDayParticipants(d);
+});
 
 const calSelectedData = computed(() =>
   calSelectedDate.value ? studyDays.value[calSelectedDate.value] ?? null : null,
@@ -424,6 +458,24 @@ const iconComponents: Record<string, unknown> = { BookOpen, AlertCircle, Trendin
               </div>
               <div :style="{ height: '6px', borderRadius: '999px', backgroundColor: '#F3F4F6', overflow: 'hidden' }">
                 <div :style="{ width: `${calSelectedData.avg}%`, height: '100%', borderRadius: '999px', backgroundColor: calAvgColor }" />
+              </div>
+            </div>
+
+            <!-- 참여자별 이해도 (세션 상세 기반) -->
+            <div v-if="calParticipants.length">
+              <div :style="{ fontSize: '0.8125rem', color: '#6B7280', margin: '0.25rem 0 0.375rem' }">참여자별 이해도</div>
+              <div
+                v-for="pp in calParticipants"
+                :key="pp.name"
+                :style="{ marginBottom: '0.5rem' }"
+              >
+                <div :style="{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151', marginBottom: '0.1875rem' }">
+                  <span>{{ pp.name }}</span>
+                  <span :style="{ fontWeight: 600, color: pp.pct >= 75 ? '#10B981' : pp.pct >= 60 ? '#C8962A' : '#EF4444' }">{{ pp.pct }}%</span>
+                </div>
+                <div :style="{ height: '6px', borderRadius: '999px', backgroundColor: '#F3F4F6', overflow: 'hidden' }">
+                  <div :style="{ width: `${pp.pct}%`, height: '100%', borderRadius: '999px', backgroundColor: pp.pct >= 75 ? '#10B981' : pp.pct >= 60 ? '#C8962A' : '#EF4444' }" />
+                </div>
               </div>
             </div>
           </div>
