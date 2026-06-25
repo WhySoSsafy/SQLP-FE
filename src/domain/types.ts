@@ -18,6 +18,15 @@ export interface RawParticipantAnalysis {
   review_required: boolean;
 }
 
+export interface Comment {
+  id: number;
+  content: string;
+  author_id: number | null;
+  author_name: string;
+  created_at: string;
+  is_mine: boolean;
+}
+
 export interface RawProblemAnalysis {
   problem_number: number;
   subject_area: SubjectArea;
@@ -33,7 +42,9 @@ export interface RawLearningSession {
   problems: RawProblemAnalysis[];
 }
 
-export interface ParticipantAnalysis extends RawParticipantAnalysis {}
+export interface ParticipantAnalysis extends RawParticipantAnalysis {
+  id?: number;
+}
 
 export interface ProblemAnalysis extends RawProblemAnalysis {
   id: string;

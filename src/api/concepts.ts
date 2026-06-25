@@ -8,7 +8,7 @@
  */
 
 import { apiClient } from "./client";
-import { CONCEPT_DETAIL_ENDPOINT } from "./endpoints";
+import { CONCEPT_DETAIL_ENDPOINT, CONCEPT_CREATE_ENDPOINT } from "./endpoints";
 import type { ConceptDetail } from "@/domain/types";
 
 /**
@@ -19,4 +19,14 @@ import type { ConceptDetail } from "@/domain/types";
  */
 export function fetchConceptDetail(id: string | number): Promise<ConceptDetail> {
   return apiClient.get<ConceptDetail>(CONCEPT_DETAIL_ENDPOINT(id));
+}
+
+/**
+ * 새 개념을 등록한다. (인증 필요)
+ * 백엔드는 camelCase 키를 그대로 수락하며 추가 키는 무시한다.
+ *
+ * @param payload 개념 생성 요청 객체 (name/title, subject?, summary?, 등)
+ */
+export function createConcept(payload: unknown): Promise<unknown> {
+  return apiClient.post(CONCEPT_CREATE_ENDPOINT, payload);
 }

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import type { CSSProperties } from "vue";
-import { FileJson, CheckCircle, XCircle, Eye } from "lucide-vue-next";
+import { FileJson, CheckCircle, XCircle, Eye, Upload } from "lucide-vue-next";
 import { normalizeConceptJson, hasConceptContent } from "@/domain/concept";
 import ConceptSummaryContent from "@/components/ConceptSummaryContent.vue";
 import type { ConceptDetail } from "@/domain/types";
+import { createConcept, toApiError } from "@/api";
 
 type ParseStatus = "idle" | "ok" | "error";
 
@@ -39,6 +40,9 @@ const fileName = ref<string | null>(null);
 const validatedConcept = ref<ConceptDetail | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const isDragging = ref(false);
+const registering = ref(false);
+const registered = ref(false);
+const registerError = ref<string | null>(null);
 
 const dropZoneStyle = computed<CSSProperties>(() => ({
   border: `2px dashed ${isDragging.value ? "#C8962A" : "#D1D5DB"}`,
@@ -58,6 +62,8 @@ function resetValidation() {
   status.value = "idle";
   errors.value = [];
   validatedConcept.value = null;
+  registered.value = false;
+  registerError.value = null;
 }
 
 function showError(messages: string[]) {
@@ -167,6 +173,51 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
   alignItems: "center",
   gap: "0.375rem",
 }));
+
+const registerDisabled = computed(
+  () => !canPreview.value || registering.value || registered.value,
+);
+
+const registerButtonStyle = computed<CSSProperties>(() => ({
+  padding: "0.6875rem 1.25rem",
+  border: "none",
+  borderRadius: "8px",
+  backgroundColor: registerDisabled.value ? "#D1D5DB" : "#C8962A",
+  color: registerDisabled.value ? "#9CA3AF" : "#FFFFFF",
+  fontSize: "0.875rem",
+  fontWeight: 600,
+  cursor: registerDisabled.value ? "not-allowed" : "pointer",
+  display: "flex",
+  alignItems: "center",
+  gap: "0.375rem",
+}));
+
+async function registerConcept() {
+  if (!validatedConcept.value || registering.value || registered.value) return;
+  registered.value = false;
+  registerError.value = null;
+  registering.value = true;
+  try {
+    const c = validatedConcept.value;
+    const payload = {
+      name: c.name,
+      title: c.name,
+      subject: c.subject,
+      summary: c.summary,
+      frequentQuestionTypes: (c as Record<string, unknown>).frequentQuestionTypes,
+      confusingPoints: (c as Record<string, unknown>).confusingPoints,
+      wrongPatterns: (c as Record<string, unknown>).wrongPatterns,
+    };
+    await createConcept(payload);
+    registered.value = true;
+  } catch (error) {
+    const apiError = toApiError(error);
+    registerError.value = apiError.message || "개념 등록 요청에 실패했습니다.";
+    console.error("[ConceptImportView] registerConcept error:", error);
+  } finally {
+    registering.value = false;
+  }
+}
 </script>
 
 <template>
@@ -243,7 +294,7 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
         :placeholder="PLACEHOLDER_JSON"
         :style="{
           width: '100%',
-          height: '240px',
+          height: '260px',
           padding: '0.875rem',
           border: '1px solid #E5E7EB',
           borderRadius: '8px',
@@ -262,7 +313,11 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
       <div :style="{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }">
         <button :disabled="reading" :style="previewButtonStyle" @click="validate">
           <Eye :size="16" />
-          미리보기 / 검증
+          미리보기 검증
+        </button>
+        <button :disabled="registerDisabled" :style="registerButtonStyle" @click="registerConcept">
+          <Upload :size="16" />
+          {{ registering ? "등록 중..." : "개념 등록하기" }}
         </button>
       </div>
 
@@ -310,6 +365,49 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
       >
         <CheckCircle :size="18" />
         올바른 개념 요약 JSON입니다. 아래에서 미리보기를 확인하세요.
+      </div>
+
+      <!-- Register success -->
+      <div
+        v-if="registered"
+        :style="{
+          marginTop: '1.25rem',
+          backgroundColor: '#FEF8EC',
+          border: '1px solid #FDE68A',
+          borderRadius: '8px',
+          padding: '0.875rem 1.125rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.625rem',
+          color: '#92690B',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+        }"
+      >
+        ✅ 개념이 등록되었습니다.
+      </div>
+
+      <!-- Register error -->
+      <div
+        v-if="registerError"
+        :style="{
+          marginTop: '1.25rem',
+          backgroundColor: '#FEF2F2',
+          border: '1px solid #FECACA',
+          borderRadius: '8px',
+          padding: '0.875rem 1.125rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.625rem',
+          color: '#DC2626',
+          fontSize: '0.875rem',
+        }"
+      >
+        <XCircle :size="18" :style="{ flexShrink: 0, marginTop: '0.0625rem' }" />
+        <div>
+          <div :style="{ fontWeight: 600, marginBottom: '0.25rem' }">개념 등록 실패</div>
+          <div>{{ registerError }}</div>
+        </div>
       </div>
     </div>
 

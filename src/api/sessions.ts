@@ -50,6 +50,7 @@ export async function fetchSessionDetail(id: string): Promise<LearningSession> {
       concepts: p.concepts ?? [],
       solution_summary: p.solution_summary ?? "",
       participants: (p.participants ?? []).map((pt: any) => ({
+        id: pt.id,
         name: pt.name,
         is_correct: pt.is_correct,
         understanding: mapUnderstanding(pt.understanding),

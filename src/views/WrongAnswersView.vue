@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { CheckCircle, Circle } from "lucide-vue-next";
 import { buildWrongAnswerItems } from "@/domain/analytics";
-import { understandingLabel } from "@/domain/understanding";
+import { understandingLabel, understandingTone } from "@/domain/understanding";
 import type { WrongAnswerItem } from "@/domain/types";
 
 type FilterType = "all" | "wrong" | "vague" | "unknown" | "done";
@@ -67,6 +67,10 @@ function toggle(id: string) {
     doneIds.value = [...doneIds.value, id];
   }
 }
+
+const persons = computed(() =>
+  Array.from(new Set(items.value.map((i) => i.person))).slice(0, 2)
+);
 </script>
 
 <template>
@@ -154,147 +158,174 @@ function toggle(id: string) {
       </button>
     </div>
 
-    <!-- Cards -->
-    <div :style="{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }">
-      <div
-        v-if="filtered.length === 0"
-        :style="{ textAlign: 'center', padding: '3rem', color: '#9CA3AF' }"
-      >
-        해당하는 오답이 없습니다. 🎉
-      </div>
+    <!-- Cards — two-column layout by participant -->
+    <div
+      :style="{
+        display: 'grid',
+        gridTemplateColumns: persons.length === 1 ? '1fr' : '1fr 1fr',
+        gap: '1rem',
+        alignItems: 'start',
+      }"
+    >
+      <div v-for="person in persons" :key="person">
+        <!-- Column header -->
+        <div
+          :style="{
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            color: '#111827',
+            backgroundColor: '#FEF8EC',
+            border: '1px solid #F3D998',
+            borderRadius: '8px',
+            padding: '0.4375rem 0.875rem',
+            marginBottom: '0.75rem',
+            display: 'inline-block',
+          }"
+        >
+          {{ person }}
+        </div>
 
-      <div
-        v-for="item in filtered"
-        :key="item.id"
-        :style="{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '12px',
-          padding: '1.25rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          opacity: item.done ? 0.6 : 1,
-          borderLeft: `4px solid ${item.understanding === '모름' ? '#EF4444' : '#C8962A'}`,
-        }"
-      >
-        <div :style="{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }">
-          <div :style="{ flex: 1 }">
-            <!-- Header -->
-            <div
-              :style="{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.625rem',
-                flexWrap: 'wrap',
-              }"
-            >
-              <span :style="{ fontWeight: 700, color: '#111827' }">{{ item.problemNumber }}번</span>
-              <span
-                :style="{
-                  backgroundColor: '#FEF8EC',
-                  color: '#92690B',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  padding: '0.125rem 0.5rem',
-                  borderRadius: '999px',
-                }"
-              >
-                {{ item.person }}
-              </span>
-              <span
-                :style="{
-                  backgroundColor: item.understanding === '잘함' ? '#DCFCE7' : item.understanding === '애매' ? '#FFEDD5' : '#FEE2E2',
-                  color: item.understanding === '잘함' ? '#15803D' : item.understanding === '애매' ? '#C2410C' : '#B91C1C',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  padding: '0.125rem 0.5rem',
-                  borderRadius: '999px',
-                }"
-              >
-                {{ understandingLabel(item.understanding) }}
-              </span>
-              <span
-                v-if="item.done"
-                :style="{
-                  backgroundColor: '#ECFDF5',
-                  color: '#065F46',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  padding: '0.125rem 0.5rem',
-                  borderRadius: '999px',
-                }"
-              >
-                ✓ 복습 완료
-              </span>
-            </div>
-
-            <!-- Concept -->
-            <div
-              :style="{
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: '#374151',
-                marginBottom: '0.625rem',
-              }"
-            >
-              관련 개념: {{ item.concepts.join(", ") }}
-            </div>
-
-            <div
-              :style="{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '0.5rem 1.5rem',
-                marginBottom: '0.75rem',
-              }"
-            >
-              <div :style="{ fontSize: '0.8125rem' }">
-                <span :style="{ color: '#EF4444', fontWeight: 500 }">놓친 개념: </span>
-                <span :style="{ color: '#374151' }">
-                  {{ item.missed.length === 0 ? "없음" : item.missed.join(", ") }}
-                </span>
-              </div>
-              <div :style="{ fontSize: '0.8125rem' }">
-                <span :style="{ color: '#6B7280', fontWeight: 500 }">오개념: </span>
-                <span :style="{ color: '#374151' }">
-                  {{ item.errors.length === 0 ? "없음" : item.errors.join(", ") }}
-                </span>
-              </div>
-            </div>
-
-            <div
-              :style="{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E5E7EB',
-                borderRadius: '8px',
-                padding: '0.75rem',
-                fontSize: '0.8125rem',
-                color: '#374151',
-                lineHeight: 1.6,
-              }"
-            >
-              <span :style="{ fontWeight: 500, color: '#6B7280' }">해설: </span>
-              {{ item.explanation }}
-            </div>
+        <!-- Per-person cards -->
+        <div :style="{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }">
+          <!-- Empty placeholder for this column -->
+          <div
+            v-if="filtered.filter((i) => i.person === person).length === 0"
+            :style="{ textAlign: 'center', padding: '2rem', color: '#9CA3AF', fontSize: '0.875rem' }"
+          >
+            해당 오답이 없습니다.
           </div>
 
-          <!-- Done button -->
-          <button
-            @click="toggle(item.id)"
+          <div
+            v-for="item in filtered.filter((i) => i.person === person)"
+            :key="item.id"
             :style="{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: item.done ? '#10B981' : '#D1D5DB',
-              flexShrink: 0,
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              opacity: item.done ? 0.6 : 1,
+              borderLeft: `4px solid ${item.understanding === '모름' ? '#EF4444' : '#C8962A'}`,
             }"
           >
-            <CheckCircle v-if="item.done" :size="22" color="#10B981" />
-            <Circle v-else :size="22" color="#D1D5DB" />
-          </button>
+            <div :style="{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }">
+              <div :style="{ flex: 1 }">
+                <!-- Header -->
+                <div
+                  :style="{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '0.625rem',
+                    flexWrap: 'wrap',
+                  }"
+                >
+                  <span :style="{ fontWeight: 700, color: '#111827' }">{{ item.problemNumber }}번</span>
+                  <span
+                    :style="{
+                      backgroundColor: '#FEF8EC',
+                      color: '#92690B',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '999px',
+                    }"
+                  >
+                    {{ item.person }}
+                  </span>
+                  <span
+                    :style="{
+                      backgroundColor: understandingTone(item.understanding).bg,
+                      color: understandingTone(item.understanding).color,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '999px',
+                    }"
+                  >
+                    {{ understandingLabel(item.understanding) }}
+                  </span>
+                  <span
+                    v-if="item.done"
+                    :style="{
+                      backgroundColor: '#ECFDF5',
+                      color: '#065F46',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '999px',
+                    }"
+                  >
+                    ✓ 복습 완료
+                  </span>
+                </div>
+
+                <!-- 관련 개념 · 놓친 개념 · 오개념 — 한 줄에 쭉 -->
+                <div
+                  :style="{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'baseline',
+                    gap: '0.375rem 1.5rem',
+                    fontSize: '0.8125rem',
+                    marginBottom: '0.75rem',
+                  }"
+                >
+                  <div>
+                    <span :style="{ color: '#2563EB', fontWeight: 600 }">관련 개념: </span>
+                    <span :style="{ color: '#374151' }">
+                      {{ item.concepts.length === 0 ? "없음" : item.concepts.join(", ") }}
+                    </span>
+                  </div>
+                  <div>
+                    <span :style="{ color: '#EF4444', fontWeight: 600 }">놓친 개념: </span>
+                    <span :style="{ color: '#374151' }">
+                      {{ item.missed.length === 0 ? "없음" : item.missed.join(", ") }}
+                    </span>
+                  </div>
+                  <div>
+                    <span :style="{ color: '#D97706', fontWeight: 600 }">오개념: </span>
+                    <span :style="{ color: '#374151' }">
+                      {{ item.errors.length === 0 ? "없음" : item.errors.join(", ") }}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  :style="{
+                    backgroundColor: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    fontSize: '0.8125rem',
+                    color: '#1E3A5F',
+                    lineHeight: 1.6,
+                  }"
+                >
+                  <span :style="{ fontWeight: 700, color: '#1D4ED8' }">해설: </span>
+                  {{ item.explanation }}
+                </div>
+              </div>
+
+              <!-- Done button -->
+              <button
+                @click="toggle(item.id)"
+                :style="{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: item.done ? '#10B981' : '#D1D5DB',
+                  flexShrink: 0,
+                  padding: '0.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                }"
+              >
+                <CheckCircle v-if="item.done" :size="22" color="#10B981" />
+                <Circle v-else :size="22" color="#D1D5DB" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

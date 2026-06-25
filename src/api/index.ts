@@ -60,7 +60,8 @@ export {
 export { validateAnalysisJson } from "./analysis";
 export { fetchCalendar } from "./calendar";
 export { fetchStudyComparison } from "./studyComparison";
-export { fetchConceptDetail } from "./concepts";
+export { fetchConceptDetail, createConcept } from "./concepts";
+export { fetchComments, createComment, deleteComment } from "./comments";
 export { fetchGrowthReport } from "./reports";
 export {
   LOGIN_ENDPOINT,

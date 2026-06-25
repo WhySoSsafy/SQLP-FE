@@ -164,7 +164,7 @@ const handleRegister = async () => {
   // 검증이 통과하지 않은 JSON은 저장하지 않는다. 검증 결과가 없으면 먼저 검증을 안내한다.
   const session = validatedSession.value;
   if (validateStatus.value !== "ok" || !session) {
-    registerNotice.value = "먼저 ‘형식 검증하기’로 검증을 완료한 뒤 등록해주세요.";
+    registerNotice.value = "먼저 ‘미리보기 검증’으로 검증을 완료한 뒤 등록해주세요.";
     return;
   }
 
@@ -381,7 +381,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
             @click="handleValidate"
           >
             <CheckCircle :size="16" />
-            {{ validating ? "검증 중..." : "형식 검증하기" }}
+            {{ validating ? "검증 중..." : "미리보기 검증" }}
           </button>
           <button
             :disabled="registerDisabled"
