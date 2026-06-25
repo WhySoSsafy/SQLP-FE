@@ -32,6 +32,8 @@ async function loadDetail(id: string) {
   }
 }
 
+const selected = ref<ProblemAnalysis | null>(null);
+
 watch(
   () => sessionSummary.value?.id,
   (id) => {
@@ -42,16 +44,14 @@ watch(
   { immediate: true }
 );
 
-const selected = ref<ProblemAnalysis | null>(null);
-
-function getAvatarColor(index: number): string {
-  return ["#C8962A", "#3B82F6", "#10B981", "#8B5CF6", "#EF4444"][index % 5];
+function getAvatarColor(_index: number): string {
+  return "#C8962A";
 }
 
 const badgeConfig: Record<Understanding, { bg: string; color: string; text: string }> = {
-  잘함: { bg: "#ECFDF5", color: "#065F46", text: "잘함" },
-  애매: { bg: "#FEF3C7", color: "#92690B", text: "애매" },
-  모름: { bg: "#FEF2F2", color: "#991B1B", text: "모름" },
+  잘함: { bg: "#DCFCE7", color: "#15803D", text: "잘함" },
+  애매: { bg: "#FFEDD5", color: "#C2410C", text: "애매" },
+  모름: { bg: "#FEE2E2", color: "#B91C1C", text: "모름" },
 };
 
 const badgeStyle = (val: Understanding): CSSProperties => ({
@@ -87,7 +87,7 @@ const sectionLabelStyle: CSSProperties = {
 </script>
 
 <template>
-  <div :style="{ display: 'flex', gap: '1.5rem', maxWidth: '1200px' }">
+  <div :style="{ display: 'flex', gap: '1.5rem', width: '100%' }">
     <!-- Table -->
     <div :style="{ flex: 1, minWidth: 0 }">
       <div
@@ -181,6 +181,7 @@ const sectionLabelStyle: CSSProperties = {
                       padding: '0.875rem 1rem',
                       color: '#374151',
                       fontWeight: 600,
+                      whiteSpace: 'nowrap',
                     }"
                   >
                     {{ p.problem_number }}번
@@ -252,7 +253,7 @@ const sectionLabelStyle: CSSProperties = {
                       </template>
                     </td>
                   </template>
-                  <td :style="{ padding: '0.875rem 1rem' }">
+                  <td :style="{ padding: '0.875rem 1rem', whiteSpace: 'nowrap' }">
                     <span
                       v-if="p.participants.some((participant) => participant.review_required)"
                       :style="{
@@ -350,6 +351,10 @@ const sectionLabelStyle: CSSProperties = {
               fontSize: '0.8125rem',
               color: '#374151',
               lineHeight: '1.6',
+              backgroundColor: '#F8FAFC',
+              border: '1px solid #E5E7EB',
+              borderRadius: '8px',
+              padding: '0.75rem',
             }"
           >
             {{ selected.solution_summary }}
