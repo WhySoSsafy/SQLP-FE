@@ -305,14 +305,15 @@ const iconComponents: Record<string, unknown> = { BookOpen, AlertCircle, Trendin
     <div
       :style="{
         display: 'grid',
-        gridTemplateColumns: '1fr 380px',
+        gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '1.5rem',
         alignItems: 'start',
       }"
     >
-      <!-- 왼쪽: 학습 캘린더 -->
+      <!-- 왼쪽: 학습 캘린더 (span 2) -->
       <div
         :style="{
+          gridColumn: 'span 2',
           backgroundColor: '#FFFFFF',
           borderRadius: '12px',
           padding: '1.5rem',
@@ -435,10 +436,8 @@ const iconComponents: Record<string, unknown> = { BookOpen, AlertCircle, Trendin
         </div>
       </div>
 
-      <!-- 오른쪽: 복습 추천 + 최근 세션 -->
-      <div :style="{ display: 'flex', flexDirection: 'column' as CSSProperties['flexDirection'], gap: '1.5rem' }">
-        <!-- 오늘의 복습 추천 -->
-        <div>
+      <!-- 3번째 칼럼: 오늘의 복습 추천 -->
+      <div>
           <div :style="sectionHeaderStyle">
             <h3 :style="{ color: '#111827' }">오늘의 복습 추천</h3>
             <button @click="router.push({ name: 'weak-concepts' })" :style="sectionLinkStyle">
@@ -528,7 +527,6 @@ const iconComponents: Record<string, unknown> = { BookOpen, AlertCircle, Trendin
             </template>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>
