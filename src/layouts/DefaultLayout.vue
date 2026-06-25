@@ -2,33 +2,27 @@
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import {
-  Home, Upload, BookOpen, BarChart2, AlertTriangle, Calendar, FileText, Users, Database, Bell, ChevronRight, Lightbulb, TrendingUp,
+  Home, Upload, BookOpen, BarChart2, AlertTriangle, FileText, Database, Bell, ChevronRight, TrendingUp,
 } from "lucide-vue-next";
 import { useSessionsStore } from "@/stores/sessions";
 
 const NAV_ITEMS = [
   { name: "home", label: "홈", icon: Home },
-  { name: "json-register", label: "JSON 등록", icon: Upload },
   { name: "sessions", label: "학습 세션", icon: BookOpen },
   { name: "problem-detail", label: "문제별 이해도", icon: BarChart2 },
   { name: "weak-concepts", label: "취약 개념", icon: AlertTriangle },
-  { name: "calendar", label: "학습 캘린더", icon: Calendar },
   { name: "wrong-answers", label: "오답노트", icon: FileText },
-  { name: "study-comparison", label: "스터디 비교", icon: Users },
-  { name: "concept-import", label: "개념 등록", icon: Lightbulb },
   { name: "growth-report", label: "성장 리포트", icon: TrendingUp },
+  { name: "register", label: "등록", icon: Upload },
 ];
 
 const PAGE_LABELS: Record<string, string> = {
   home: "홈 대시보드",
-  "json-register": "AI 분석 결과 JSON 등록",
+  register: "JSON / 개념 등록",
   sessions: "학습 세션",
   "problem-detail": "문제별 이해도",
   "weak-concepts": "취약 개념 대시보드",
-  calendar: "학습 캘린더",
   "wrong-answers": "오답노트",
-  "study-comparison": "스터디원 비교",
-  "concept-import": "개념 요약 JSON 등록",
   "concept-summary": "개념 요약",
   "growth-report": "성장 리포트",
 };
