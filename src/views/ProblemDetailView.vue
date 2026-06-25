@@ -216,10 +216,10 @@ function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
               }"
             >
               <thead>
-                <tr :style="{ backgroundColor: '#F9FAFB' }">
+                <tr :style="{ backgroundColor: '#FEF8EC', borderBottom: '2px solid #F0E0C0' }">
                   <th
                     v-for="h in [
-                      '#',
+                      '번호',
                       '과목',
                       '핵심 개념',
                       ...session.speakers.flatMap((speaker) => [
@@ -231,9 +231,9 @@ function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
                     :key="h"
                     :style="{
                       padding: '0.75rem 1rem',
-                      textAlign: 'left' as CSSProperties['textAlign'],
-                      color: '#6B7280',
-                      fontWeight: 500,
+                      textAlign: 'center' as CSSProperties['textAlign'],
+                      color: '#374151',
+                      fontWeight: 700,
                       fontSize: '0.8125rem',
                       whiteSpace: 'nowrap',
                     }"
@@ -300,7 +300,7 @@ function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
                     v-for="speaker in session.speakers"
                     :key="`${p.id}-${speaker}`"
                   >
-                    <td :style="{ padding: '0.875rem 1rem' }">
+                    <td :style="{ padding: '0.875rem 1rem', textAlign: 'center' as CSSProperties['textAlign'] }">
                       <template v-if="p.participants.find((item) => item.name === speaker)">
                         <span
                           :style="{
@@ -317,7 +317,7 @@ function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
                         <span :style="{ color: '#9CA3AF' }">-</span>
                       </template>
                     </td>
-                    <td :style="{ padding: '0.875rem 1rem' }">
+                    <td :style="{ padding: '0.875rem 1rem', textAlign: 'center' as CSSProperties['textAlign'] }">
                       <template v-if="p.participants.find((item) => item.name === speaker)">
                         <span
                           :style="badgeStyle(p.participants.find((item) => item.name === speaker)!.understanding)"
@@ -330,7 +330,7 @@ function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
                       </template>
                     </td>
                   </template>
-                  <td :style="{ padding: '0.875rem 1rem', whiteSpace: 'nowrap' }">
+                  <td :style="{ padding: '0.875rem 1rem', whiteSpace: 'nowrap', textAlign: 'center' as CSSProperties['textAlign'] }">
                     <span
                       v-if="p.participants.some((participant) => participant.review_required)"
                       :style="{
