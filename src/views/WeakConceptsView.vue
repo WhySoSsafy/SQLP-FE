@@ -6,7 +6,7 @@ import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { BarChart } from "echarts/charts";
 import { GridComponent, TooltipComponent, LegendComponent } from "echarts/components";
-import { AlertTriangle, RefreshCw } from "lucide-vue-next";
+import { AlertTriangle } from "lucide-vue-next";
 import { useSessionsStore } from "@/stores/sessions";
 import { buildWeakConcepts } from "@/domain/analytics";
 import type { WeakConcept } from "@/domain/types";
@@ -70,10 +70,20 @@ const weakScore = (concept: WeakConcept): number =>
     ? concept.averageScore
     : concept.scoreByParticipant[activeFilter.value] ?? 0;
 
-const weakItems = (concept: WeakConcept): number =>
-  activeFilter.value === "all"
-    ? Object.values(concept.weakCountByParticipant).reduce((sum, count) => sum + count, 0)
-    : concept.weakCountByParticipant[activeFilter.value] ?? 0;
+// 참여자별 취약 개념 리스트: 그 참여자의 이해도(scoreByParticipant) 낮은 순.
+function participantWeakList(name: string) {
+  return [...concepts.value]
+    .map((c) => ({
+      name: c.name,
+      score: c.scoreByParticipant[name] ?? 0,
+      weak: c.weakCountByParticipant[name] ?? 0,
+      recommend: c.recommend,
+    }))
+    .sort((a, b) => a.score - b.score);
+}
+
+// 차트/참여자 칼럼에 쓸 상위 2명 (보통 세은·수철).
+const topParticipants = computed(() => participantNames.value.slice(0, 2));
 
 // series = one bar per participant (+ 평균 when filter is 'all'):
 // when activeFilter !== "all", only the matching participant is shown (no 평균)
@@ -252,17 +262,19 @@ const chartOption = computed(() => {
         </div>
       </div>
 
-      <!-- Chart + Sidebar -->
+      <!-- Chart(1~3열) + 참여자별 복습 추천(4·5열) -->
       <div
         :style="{
           display: 'grid',
-          gridTemplateColumns: '1fr 300px',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           gap: '1.5rem',
+          alignItems: 'start',
         }"
       >
-        <!-- Bar Chart -->
+        <!-- Bar Chart: 1~3열 -->
         <div
           :style="{
+            gridColumn: 'span 3',
             backgroundColor: '#FFFFFF',
             borderRadius: '12px',
             padding: '1.5rem',
@@ -273,76 +285,34 @@ const chartOption = computed(() => {
           <VChart :option="chartOption" :style="{ height: '280px', width: '100%' }" autoresize />
         </div>
 
-        <!-- Review List -->
+        <!-- 참여자별 복습 추천: 각 1열 -->
         <div
+          v-for="person in topParticipants"
+          :key="person"
           :style="{
             backgroundColor: '#FFFFFF',
             borderRadius: '12px',
-            padding: '1.5rem',
+            padding: '1.25rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
           }"
         >
-          <h3 :style="{ color: '#111827', marginBottom: '1.125rem' }">개념별 복습 추천</h3>
-          <div
-            :style="{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-            }"
-          >
+          <h3 :style="{ color: '#111827', marginBottom: '1rem', fontSize: '0.9375rem' }">{{ person }} 복습 추천</h3>
+          <div :style="{ display: 'flex', flexDirection: 'column' as CSSProperties['flexDirection'], gap: '0.625rem' }">
             <div
-              v-for="c in concepts"
-              :key="c.name"
+              v-for="c in participantWeakList(person)"
+              :key="`${person}-${c.name}`"
               :style="{
                 borderRadius: '8px',
-                padding: '0.75rem',
+                padding: '0.625rem 0.75rem',
                 backgroundColor: c.recommend ? '#FEF8EC' : '#F9FAFB',
                 border: c.recommend ? '1px solid #FDE68A' : '1px solid #F3F4F6',
               }"
             >
-              <div
-                :style="{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.375rem',
-                }"
-              >
-                <span
-                  :style="{ fontWeight: 600, fontSize: '0.875rem', color: '#111827' }"
-                >{{ c.name }}</span>
-                <span
-                  v-if="c.recommend"
-                  :style="{
-                    backgroundColor: '#FEF3C7',
-                    color: '#92690B',
-                    fontSize: '0.6875rem',
-                    fontWeight: 600,
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '999px',
-                  }"
-                >추천</span>
+              <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }">
+                <span :style="{ fontWeight: 600, fontSize: '0.8125rem', color: '#111827' }">{{ c.name }}</span>
+                <span :style="{ fontSize: '0.8125rem', fontWeight: 700, color: c.score < 40 ? '#EF4444' : c.score < 60 ? '#C8962A' : '#10B981' }">{{ c.score }}%</span>
               </div>
-              <div
-                :style="{
-                  fontSize: '0.75rem',
-                  color: '#6B7280',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.125rem',
-                } as CSSProperties"
-              >
-                <span>전체 {{ c.totalProblems }}문제 · 취약 {{ weakItems(c) }}문제</span>
-                <span
-                  :style="{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                  } as CSSProperties"
-                >
-                  <RefreshCw :size="10" /> 최근 복습: {{ c.lastReviewDate }}
-                </span>
-              </div>
+              <div :style="{ fontSize: '0.6875rem', color: '#9CA3AF', marginTop: '0.1875rem' }">취약 {{ c.weak }}문제</div>
             </div>
           </div>
         </div>
