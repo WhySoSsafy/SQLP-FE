@@ -1,37 +1,52 @@
 /**
  * 참여자 코멘트 관련 API 호출.
  *
- * 참여자(participant)별 코멘트 목록 조회/등록, 개별 코멘트 삭제 엔드포인트를 제공한다.
+ * [test/mock-mode] 백엔드 없이 in-memory 스토어로 동작한다.
+ * MOCK_COMMENTS_INIT으로 초기 댓글을 채워두고, 작성/삭제는 스토어에 반영된다.
+ * 새로고침하면 초기 상태로 돌아온다.
+ *
+ * 목 현재 사용자: 세은 (author_id: 0) — is_mine: true 로 표시된다.
  */
 
-import { apiClient } from "./client";
-import { PARTICIPANT_COMMENTS_ENDPOINT, COMMENT_DETAIL_ENDPOINT } from "./endpoints";
 import type { Comment } from "@/domain/types";
+import { MOCK_COMMENTS_INIT } from "@/mocks/data";
 
-/**
- * 특정 참여자의 코멘트 목록을 조회한다. (인증 필요)
- *
- * @param participantId 참여자 id
- */
+const MOCK_AUTHOR_ID = 0;
+const MOCK_AUTHOR_NAME = "세은";
+
+// 초기 댓글 데이터를 복사해 뮤터블 스토어 생성 (배열도 shallow copy해 공유 참조 방지)
+const _store: Record<number, Comment[]> = {};
+for (const [k, v] of Object.entries(MOCK_COMMENTS_INIT)) {
+  _store[Number(k)] = [...v];
+}
+
+let _nextCommentId = 9000;
+
 export function fetchComments(participantId: number): Promise<Comment[]> {
-  return apiClient.get<Comment[]>(PARTICIPANT_COMMENTS_ENDPOINT(participantId));
+  return Promise.resolve([...(_store[participantId] ?? [])]);
 }
 
-/**
- * 특정 참여자에 코멘트를 등록한다. (인증 필요)
- *
- * @param participantId 참여자 id
- * @param content 코멘트 내용
- */
 export function createComment(participantId: number, content: string): Promise<Comment> {
-  return apiClient.post<Comment>(PARTICIPANT_COMMENTS_ENDPOINT(participantId), { content });
+  const newComment: Comment = {
+    id: _nextCommentId++,
+    content,
+    author_id: MOCK_AUTHOR_ID,
+    author_name: MOCK_AUTHOR_NAME,
+    created_at: new Date().toISOString(),
+    is_mine: true,
+  };
+  _store[participantId] = [...(_store[participantId] ?? []), newComment];
+  return Promise.resolve(newComment);
 }
 
-/**
- * 코멘트를 삭제한다. (인증 필요)
- *
- * @param commentId 코멘트 id
- */
 export function deleteComment(commentId: number): Promise<{ ok: boolean }> {
-  return apiClient.del<{ ok: boolean }>(COMMENT_DETAIL_ENDPOINT(commentId));
+  for (const pid of Object.keys(_store)) {
+    const arr = _store[Number(pid)];
+    const idx = arr.findIndex((c) => c.id === commentId);
+    if (idx !== -1) {
+      _store[Number(pid)] = arr.filter((c) => c.id !== commentId);
+      break;
+    }
+  }
+  return Promise.resolve({ ok: true });
 }
