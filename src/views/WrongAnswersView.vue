@@ -71,7 +71,7 @@ function toggle(id: string) {
 
 <template>
   <!-- Loading state -->
-  <div v-if="loading" :style="{ maxWidth: '900px' }">
+  <div v-if="loading" :style="{ width: '100%' }">
     <div
       :style="{
         backgroundColor: '#FFFFFF',
@@ -87,7 +87,7 @@ function toggle(id: string) {
   </div>
 
   <!-- Error state -->
-  <div v-else-if="error" :style="{ maxWidth: '900px' }">
+  <div v-else-if="error" :style="{ width: '100%' }">
     <div
       :style="{
         backgroundColor: '#FFFFFF',
@@ -103,7 +103,7 @@ function toggle(id: string) {
   </div>
 
   <!-- Empty state -->
-  <div v-else-if="items.length === 0" :style="{ maxWidth: '900px' }">
+  <div v-else-if="items.length === 0" :style="{ width: '100%' }">
     <div
       :style="{
         backgroundColor: '#FFFFFF',
@@ -119,7 +119,7 @@ function toggle(id: string) {
   </div>
 
   <!-- Main view -->
-  <div v-else :style="{ maxWidth: '900px' }">
+  <div v-else :style="{ width: '100%' }">
     <!-- Filter -->
     <div :style="{ display: 'flex', gap: '0.5rem', marginBottom: '1.375rem', flexWrap: 'wrap' }">
       <button

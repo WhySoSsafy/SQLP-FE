@@ -118,7 +118,7 @@ const chartOption = computed(() => {
 </script>
 
 <template>
-  <div :style="{ maxWidth: '1200px' }">
+  <div :style="{ width: '100%' }">
     <!-- Loading / Error -->
     <div v-if="loading" :style="{ color: '#6B7280', fontSize: '0.875rem', marginBottom: '1rem' }">
       취약 개념 데이터를 불러오는 중...

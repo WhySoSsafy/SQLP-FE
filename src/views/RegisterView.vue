@@ -8,7 +8,7 @@ const activeType = ref<RegisterType>("problem");
 </script>
 
 <template>
-  <div :style="{ maxWidth: '860px' }">
+  <div :style="{ width: '100%' }">
     <!-- 타입 토글 -->
     <div :style="{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }">
       <button

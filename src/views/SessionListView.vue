@@ -43,7 +43,7 @@ function handleSelectSession(id: string) {
   router.push({ name: "problem-detail" });
 }
 
-const outerStyle: CSSProperties = { maxWidth: "900px" };
+const outerStyle: CSSProperties = { width: "100%" };
 
 
 const countStyle: CSSProperties = {

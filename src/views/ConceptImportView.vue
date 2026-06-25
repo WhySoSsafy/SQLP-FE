@@ -158,7 +158,7 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
 </script>
 
 <template>
-  <div :style="{ maxWidth: '860px' }">
+  <div :style="{ width: '100%' }">
     <!-- Intro -->
     <div :style="{ marginBottom: '1.5rem' }">
       <p :style="{ color: '#6B7280', fontSize: '0.875rem', lineHeight: 1.6 }">
