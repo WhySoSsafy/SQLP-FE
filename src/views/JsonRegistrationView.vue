@@ -45,10 +45,8 @@ const PLACEHOLDER_JSON = `{
   ]
 }`;
 
-type Tab = "file" | "paste";
 type ValidateStatus = null | "ok" | "error";
 
-const activeTab = ref<Tab>("paste");
 const jsonText = ref("");
 const isDragging = ref(false);
 const fileName = ref<string | null>(null);
@@ -218,16 +216,6 @@ const handleFile = (file: File) => {
   reader.readAsText(file);
 };
 
-const handleTabChange = (tab: Tab) => {
-  activeTab.value = tab;
-  jsonText.value = "";
-  fileName.value = null;
-  if (fileInput.value) {
-    fileInput.value.value = "";
-  }
-  resetValidation();
-};
-
 const previewRows = computed(() => {
   if (!preview.value) return [];
   const speakers = validatedSession.value?.speakers ?? [];
@@ -244,18 +232,6 @@ const previewRows = computed(() => {
           : `${preview.value.participantCount}명`,
     },
   ];
-});
-
-const tabButtonStyle = (tab: Tab): CSSProperties => ({
-  padding: "0.875rem 1.5rem",
-  fontSize: "0.875rem",
-  fontWeight: activeTab.value === tab ? 600 : 400,
-  color: activeTab.value === tab ? "#C8962A" : "#6B7280",
-  backgroundColor: "transparent",
-  border: "none",
-  cursor: "pointer",
-  borderBottom: activeTab.value === tab ? "2px solid #C8962A" : "2px solid transparent",
-  marginBottom: "-1px",
 });
 
 const dropZoneStyle = computed<CSSProperties>(() => ({
@@ -284,7 +260,7 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
 </script>
 
 <template>
-  <div style="max-width: 860px">
+  <div :style="{ width: '100%' }">
     <div style="margin-bottom: 1.5rem">
       <p style="color: #6b7280; font-size: 0.875rem; line-height: 1.6">
         외부 AI에서 생성한 SQLP 풀이 분석 JSON을 업로드하거나 직접 붙여넣어 학습 기록으로 등록하세요.
@@ -312,93 +288,77 @@ const registerButtonStyle = computed<CSSProperties>(() => ({
         overflow: 'hidden',
       }"
     >
-      <!-- Tabs -->
-      <div style="display: flex; border-bottom: 1px solid #e5e7eb">
-        <button
-          v-for="tab in (['file', 'paste'] as Tab[])"
-          :key="tab"
-          :style="tabButtonStyle(tab)"
-          @click="handleTabChange(tab)"
-        >
-          {{ tab === "file" ? "📁  JSON 파일 업로드" : "✏️  JSON 직접 붙여넣기" }}
-        </button>
-      </div>
-
       <div style="padding: 1.5rem">
-        <!-- File upload tab -->
-        <div v-if="activeTab === 'file'">
-          <div
-            :style="dropZoneStyle"
-            @dragover.prevent="isDragging = true"
-            @dragleave="isDragging = false"
-            @drop.prevent="
+        <!-- 파일 업로드 -->
+        <div
+          :style="dropZoneStyle"
+          @dragover.prevent="isDragging = true"
+          @dragleave="isDragging = false"
+          @drop.prevent="
+            (e) => {
+              isDragging = false;
+              const file = (e as DragEvent).dataTransfer?.files[0];
+              if (file) handleFile(file);
+            }
+          "
+          @click="fileInput?.click()"
+        >
+          <FileJson
+            :size="40"
+            :color="isDragging ? '#C8962A' : '#9CA3AF'"
+            :style="{ margin: '0 auto 0.75rem' }"
+          />
+          <div :style="{ fontWeight: 500, color: '#374151', marginBottom: '0.375rem' }">
+            {{ fileName ? fileName : ".json 파일을 여기에 끌어오거나 클릭해서 업로드하세요" }}
+          </div>
+          <div :style="{ fontSize: '0.8125rem', color: '#9CA3AF' }">
+            {{ fileName ? "파일이 선택되었습니다." : "최대 10MB · JSON 형식만 지원" }}
+          </div>
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".json"
+            style="display: none"
+            @change="
               (e) => {
-                isDragging = false;
-                const file = (e as DragEvent).dataTransfer?.files[0];
+                const file = (e.target as HTMLInputElement).files?.[0];
                 if (file) handleFile(file);
               }
             "
-            @click="fileInput?.click()"
-          >
-            <FileJson
-              :size="40"
-              :color="isDragging ? '#C8962A' : '#9CA3AF'"
-              :style="{ margin: '0 auto 0.75rem' }"
-            />
-            <div :style="{ fontWeight: 500, color: '#374151', marginBottom: '0.375rem' }">
-              {{ fileName ? fileName : ".json 파일을 여기에 끌어오거나 클릭해서 업로드하세요" }}
-            </div>
-            <div :style="{ fontSize: '0.8125rem', color: '#9CA3AF' }">
-              {{ fileName ? "파일이 선택되었습니다." : "최대 10MB · JSON 형식만 지원" }}
-            </div>
-            <input
-              ref="fileInput"
-              type="file"
-              accept=".json"
-              style="display: none"
-              @change="
-                (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) handleFile(file);
-                }
-              "
-            />
-          </div>
-        </div>
-
-        <!-- Paste tab -->
-        <div v-else>
-          <label
-            :style="{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              marginBottom: '0.5rem',
-            }"
-          >
-            JSON 텍스트 붙여넣기
-          </label>
-          <textarea
-            v-model="jsonText"
-            :placeholder="PLACEHOLDER_JSON"
-            :style="{
-              width: '100%',
-              height: '260px',
-              padding: '0.875rem',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              fontSize: '0.8125rem',
-              fontFamily: 'monospace',
-              resize: 'vertical',
-              outline: 'none',
-              color: '#374151',
-              backgroundColor: '#FAFAFA',
-              boxSizing: 'border-box',
-            }"
-            @input="resetValidation"
           />
         </div>
+
+        <!-- 직접 붙여넣기 -->
+        <label
+          :style="{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            color: '#374151',
+            margin: '1.25rem 0 0.5rem',
+          }"
+        >
+          또는 JSON 텍스트 직접 붙여넣기
+        </label>
+        <textarea
+          v-model="jsonText"
+          :placeholder="PLACEHOLDER_JSON"
+          :style="{
+            width: '100%',
+            height: '260px',
+            padding: '0.875rem',
+            border: '1px solid #E5E7EB',
+            borderRadius: '8px',
+            fontSize: '0.8125rem',
+            fontFamily: 'monospace',
+            resize: 'vertical',
+            outline: 'none',
+            color: '#374151',
+            backgroundColor: '#FAFAFA',
+            boxSizing: 'border-box',
+          }"
+          @input="resetValidation"
+        />
 
         <!-- Buttons -->
         <div :style="{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }">
