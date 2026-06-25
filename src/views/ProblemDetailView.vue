@@ -2,10 +2,17 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { X } from "lucide-vue-next";
 import type { CSSProperties } from "vue";
+import VChart from "vue-echarts";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { GraphChart } from "echarts/charts";
+import { TooltipComponent, LegendComponent } from "echarts/components";
 import type { LearningSession, ProblemAnalysis, Understanding } from "@/domain/types";
 import { getSelectedOrNewestSession } from "@/domain/storage";
 import { useSessionsStore } from "@/stores/sessions";
 import { fetchSessionDetail } from "@/api";
+
+use([CanvasRenderer, GraphChart, TooltipComponent, LegendComponent]);
 
 const sessionsStore = useSessionsStore();
 
@@ -84,6 +91,76 @@ const sectionLabelStyle: CSSProperties = {
   textTransform: "uppercase",
   marginBottom: "0.375rem",
 };
+
+const graphPanelStyle: CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+  backgroundColor: "#FFFFFF",
+  borderRadius: "12px",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+  padding: "1.25rem",
+  position: "sticky",
+  top: "1.75rem",
+  maxHeight: "calc(100vh - 120px)",
+};
+
+// 문제 노드 ↔ 개념 노드를 연결한 Force-Directed Graph.
+// 노드끼리 반발(repulsion), 연결된 노드는 인력(edgeLength)으로 자연스러운 군집을 만든다.
+const graphOption = computed(() => {
+  const problems = session.value?.problems ?? [];
+  const nodes: Record<string, unknown>[] = [];
+  const links: Record<string, unknown>[] = [];
+  const conceptSeen = new Set<string>();
+
+  for (const p of problems) {
+    const pid = `p:${p.problem_number}`;
+    nodes.push({ id: pid, name: `${p.problem_number}번`, category: 0, symbolSize: 34 });
+    for (const c of p.concepts) {
+      const cid = `c:${c}`;
+      if (!conceptSeen.has(cid)) {
+        conceptSeen.add(cid);
+        nodes.push({ id: cid, name: c, category: 1, symbolSize: 20 });
+      }
+      links.push({ source: pid, target: cid });
+    }
+  }
+
+  return {
+    tooltip: {
+      formatter: (params: { dataType?: string; data?: { name?: string } }) =>
+        params.dataType === "node" ? String(params.data?.name ?? "") : "",
+    },
+    legend: [{ data: ["문제", "개념"], top: 0, textStyle: { fontSize: 12 } }],
+    series: [
+      {
+        type: "graph",
+        layout: "force",
+        roam: true,
+        draggable: true,
+        label: { show: true, position: "right", fontSize: 11, color: "#374151" },
+        force: { repulsion: 110, edgeLength: 70, gravity: 0.08 },
+        categories: [
+          { name: "문제", itemStyle: { color: "#C8962A" } },
+          { name: "개념", itemStyle: { color: "#60A5FA" } },
+        ],
+        lineStyle: { color: "#D1D5DB", width: 1, curveness: 0 },
+        emphasis: { focus: "adjacency", lineStyle: { width: 2 } },
+        data: nodes,
+        links,
+      },
+    ],
+  };
+});
+
+// 문제 노드 클릭 시 해당 문제 상세를 연다.
+function onGraphClick(params: { dataType?: string; data?: { id?: string } }) {
+  if (params.dataType !== "node") return;
+  const id = String(params.data?.id ?? "");
+  if (!id.startsWith("p:")) return;
+  const num = Number(id.slice(2));
+  const p = (session.value?.problems ?? []).find((x) => x.problem_number === num);
+  if (p) selected.value = p;
+}
 </script>
 
 <template>
@@ -492,6 +569,24 @@ const sectionLabelStyle: CSSProperties = {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Force-Directed Graph (문제 미선택 시 우측 공간) -->
+    <div v-else :style="graphPanelStyle">
+      <h3 :style="{ color: '#111827', fontSize: '0.9375rem', marginBottom: '0.25rem' }">문제 · 개념 관계도</h3>
+      <div :style="{ fontSize: '0.75rem', color: '#9CA3AF', marginBottom: '0.5rem' }">
+        노드를 끌어 움직일 수 있어요. 문제 노드를 클릭하면 상세가 열립니다.
+      </div>
+      <VChart
+        v-if="(session?.problems?.length ?? 0) > 0"
+        :option="graphOption"
+        :style="{ height: 'calc(100vh - 220px)', width: '100%' }"
+        autoresize
+        @click="onGraphClick"
+      />
+      <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+        표시할 문제가 없습니다.
       </div>
     </div>
   </div>
