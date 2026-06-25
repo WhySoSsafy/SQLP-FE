@@ -9,7 +9,7 @@ import type { ConceptDetail } from "@/domain/types";
 type ParseStatus = "idle" | "ok" | "error";
 
 // 너무 큰 파일에 대한 기본 방어 (개념 요약 JSON은 작다).
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const PLACEHOLDER_JSON = `{
   "title": "옵티마이저",
@@ -38,6 +38,17 @@ const reading = ref(false);
 const fileName = ref<string | null>(null);
 const validatedConcept = ref<ConceptDetail | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
+
+const dropZoneStyle = computed<CSSProperties>(() => ({
+  border: `2px dashed ${isDragging.value ? "#C8962A" : "#D1D5DB"}`,
+  borderRadius: "10px",
+  padding: "3rem 2rem",
+  textAlign: "center" as const,
+  cursor: "pointer",
+  backgroundColor: isDragging.value ? "#FEF8EC" : "#F9FAFB",
+  transition: "all 0.15s",
+}));
 
 const canPreview = computed(
   () => status.value === "ok" && !!validatedConcept.value && hasConceptContent(validatedConcept.value),
@@ -106,7 +117,7 @@ async function handleFile(file: File) {
 
   if (file.size > MAX_FILE_SIZE) {
     fileName.value = null;
-    showError(["파일이 너무 큽니다. (최대 2MB)"]);
+    showError(["파일이 너무 큽니다. (최대 10MB)"]);
     return;
   }
 
@@ -144,13 +155,14 @@ function onTextInput() {
 
 const previewButtonStyle = computed<CSSProperties>(() => ({
   padding: "0.6875rem 1.25rem",
-  border: "none",
+  border: "1.5px solid #C8962A",
   borderRadius: "8px",
-  backgroundColor: reading.value ? "#D1D5DB" : "#C8962A",
-  color: reading.value ? "#9CA3AF" : "#FFFFFF",
+  backgroundColor: "#FFFFFF",
+  color: "#C8962A",
   fontSize: "0.875rem",
   fontWeight: 600,
   cursor: reading.value ? "not-allowed" : "pointer",
+  opacity: reading.value ? 0.6 : 1,
   display: "flex",
   alignItems: "center",
   gap: "0.375rem",
@@ -188,25 +200,30 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
         marginBottom: '1.25rem',
       }"
     >
-      <!-- File upload -->
+      <!-- 파일 업로드 -->
       <div
-        :style="{
-          border: '2px dashed #D1D5DB',
-          borderRadius: '10px',
-          padding: '1.75rem 1rem',
-          textAlign: 'center' as CSSProperties['textAlign'],
-          cursor: 'pointer',
-          backgroundColor: '#F9FAFB',
-          marginBottom: '1.25rem',
-        }"
+        :style="[dropZoneStyle, { marginBottom: '1.25rem' }]"
+        @dragover.prevent="isDragging = true"
+        @dragleave="isDragging = false"
+        @drop.prevent="
+          (e) => {
+            isDragging = false;
+            const file = (e as DragEvent).dataTransfer?.files[0];
+            if (file) handleFile(file);
+          }
+        "
         @click="fileInput?.click()"
       >
-        <FileJson :size="34" color="#9CA3AF" :style="{ margin: '0 auto 0.5rem' }" />
-        <div :style="{ fontWeight: 500, color: '#374151', marginBottom: '0.25rem' }">
-          {{ fileName ? fileName : ".json 파일을 선택해서 업로드하세요" }}
+        <FileJson
+          :size="40"
+          :color="isDragging ? '#C8962A' : '#9CA3AF'"
+          :style="{ margin: '0 auto 0.75rem' }"
+        />
+        <div :style="{ fontWeight: 500, color: '#374151', marginBottom: '0.375rem' }">
+          {{ fileName ? fileName : ".json 파일을 여기에 끌어오거나 클릭해서 업로드하세요" }}
         </div>
         <div :style="{ fontSize: '0.8125rem', color: '#9CA3AF' }">
-          {{ reading ? "파일을 읽는 중..." : "최대 2MB · JSON 형식만 지원" }}
+          {{ reading ? "파일을 읽는 중..." : "최대 10MB · JSON 형식만 지원" }}
         </div>
         <input
           ref="fileInput"
@@ -219,7 +236,7 @@ const previewButtonStyle = computed<CSSProperties>(() => ({
 
       <!-- Paste -->
       <label :style="{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#374151', marginBottom: '0.5rem' }">
-        JSON 직접 붙여넣기
+        또는 JSON 텍스트 직접 붙여넣기
       </label>
       <textarea
         v-model="jsonText"
