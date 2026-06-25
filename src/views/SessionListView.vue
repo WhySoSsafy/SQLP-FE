@@ -57,8 +57,6 @@ const chartPanelStyle: CSSProperties = {
   borderRadius: "12px",
   padding: "1.5rem",
   boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-  position: "sticky",
-  top: "1.75rem",
 };
 
 // 추이 차트는 날짜 오름차순으로 그린다. (검색 필터를 그대로 반영)
@@ -69,29 +67,20 @@ const trendSeriesData = computed(() =>
 const trendOption = computed(() => {
   const data = trendSeriesData.value;
   return {
-    grid: { top: 32, right: 16, left: 8, bottom: 24, containLabel: true },
-    tooltip: { trigger: "axis" },
-    legend: { top: 0, textStyle: { fontSize: 12 } },
+    grid: { top: 16, right: 16, left: 8, bottom: 24, containLabel: true },
+    tooltip: { trigger: "axis", valueFormatter: (v: number) => `${v}%` },
     xAxis: {
       type: "category",
       data: data.map((s) => s.date.slice(5)),
       axisLabel: { fontSize: 11, color: "#6B7280" },
     },
-    yAxis: [
-      {
-        type: "value",
-        min: 0,
-        max: 100,
-        axisLabel: { fontSize: 11, color: "#6B7280", formatter: "{value}%" },
-        splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
-      },
-      {
-        type: "value",
-        min: 0,
-        axisLabel: { fontSize: 11, color: "#9CA3AF" },
-        splitLine: { show: false },
-      },
-    ],
+    yAxis: {
+      type: "value",
+      min: 0,
+      max: 100,
+      axisLabel: { fontSize: 11, color: "#6B7280", formatter: "{value}%" },
+      splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
+    },
     series: [
       {
         name: "평균 이해도",
@@ -102,13 +91,35 @@ const trendOption = computed(() => {
         lineStyle: { color: "#C8962A", width: 2 },
         areaStyle: { color: "rgba(200,150,42,0.08)" },
       },
+    ],
+  };
+});
+
+const reviewOption = computed(() => {
+  const data = trendSeriesData.value;
+  return {
+    grid: { top: 16, right: 16, left: 8, bottom: 24, containLabel: true },
+    tooltip: { trigger: "axis" },
+    xAxis: {
+      type: "category",
+      data: data.map((s) => s.date.slice(5)),
+      axisLabel: { fontSize: 11, color: "#6B7280" },
+    },
+    yAxis: {
+      type: "value",
+      min: 0,
+      axisLabel: { fontSize: 11, color: "#9CA3AF" },
+      splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
+    },
+    series: [
       {
         name: "복습 필요",
-        type: "bar",
-        yAxisIndex: 1,
+        type: "line",
+        smooth: true,
         data: data.map((s) => s.reviewRequiredCount),
-        itemStyle: { color: "#FCD9A5", borderRadius: [4, 4, 0, 0] },
-        barWidth: "40%",
+        itemStyle: { color: "#EF4444" },
+        lineStyle: { color: "#EF4444", width: 2 },
+        areaStyle: { color: "rgba(239,68,68,0.10)" },
       },
     ],
   };
@@ -201,7 +212,7 @@ const barTrackStyle: CSSProperties = {
     </div>
 
     <!-- 2열: 세션 목록(좌) + 이해도 추이(우) -->
-    <div :style="{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '1.5rem', alignItems: 'start' }">
+    <div :style="{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'start' }">
       <!-- 왼쪽: 세션 목록 -->
       <div :style="{ minWidth: 0 }">
         <!-- Search -->
@@ -305,17 +316,31 @@ const barTrackStyle: CSSProperties = {
     </div>
       </div>
 
-      <!-- 오른쪽: 세션별 이해도 추이 -->
-      <div :style="chartPanelStyle">
-        <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">세션별 이해도 추이</h3>
-        <VChart
-          v-if="trendSeriesData.length"
-          :option="trendOption"
-          :style="{ height: '300px', width: '100%' }"
-          autoresize
-        />
-        <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
-          표시할 세션이 없습니다.
+      <!-- 오른쪽: 차트 2개 (이해도 추이 + 복습 필요 추이) -->
+      <div :style="{ display: 'flex', flexDirection: 'column' as CSSProperties['flexDirection'], gap: '1.5rem', position: 'sticky', top: '1.75rem' }">
+        <div :style="chartPanelStyle">
+          <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">세션별 이해도 추이</h3>
+          <VChart
+            v-if="trendSeriesData.length"
+            :option="trendOption"
+            :style="{ height: '260px', width: '100%' }"
+            autoresize
+          />
+          <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+            표시할 세션이 없습니다.
+          </div>
+        </div>
+        <div :style="chartPanelStyle">
+          <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">복습 필요 추이</h3>
+          <VChart
+            v-if="trendSeriesData.length"
+            :option="reviewOption"
+            :style="{ height: '260px', width: '100%' }"
+            autoresize
+          />
+          <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+            표시할 세션이 없습니다.
+          </div>
         </div>
       </div>
     </div>
