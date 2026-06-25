@@ -3,9 +3,16 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Search, ChevronRight } from "lucide-vue-next";
 import type { CSSProperties } from "vue";
+import VChart from "vue-echarts";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { LineChart, BarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent, LegendComponent } from "echarts/components";
 import { useSessionsStore } from "@/stores/sessions";
 import { summarizeSessions } from "@/domain/analytics";
 import type { SessionSummary } from "@/domain/types";
+
+use([CanvasRenderer, LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent]);
 
 const sessions = useSessionsStore();
 const router = useRouter();
@@ -44,6 +51,68 @@ function handleSelectSession(id: string) {
 }
 
 const outerStyle: CSSProperties = { width: "100%" };
+
+const chartPanelStyle: CSSProperties = {
+  backgroundColor: "#FFFFFF",
+  borderRadius: "12px",
+  padding: "1.5rem",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  position: "sticky",
+  top: "1.75rem",
+};
+
+// 추이 차트는 날짜 오름차순으로 그린다. (검색 필터를 그대로 반영)
+const trendSeriesData = computed(() =>
+  [...filtered.value].sort((a, b) => a.date.localeCompare(b.date)),
+);
+
+const trendOption = computed(() => {
+  const data = trendSeriesData.value;
+  return {
+    grid: { top: 32, right: 16, left: 8, bottom: 24, containLabel: true },
+    tooltip: { trigger: "axis" },
+    legend: { top: 0, textStyle: { fontSize: 12 } },
+    xAxis: {
+      type: "category",
+      data: data.map((s) => s.date.slice(5)),
+      axisLabel: { fontSize: 11, color: "#6B7280" },
+    },
+    yAxis: [
+      {
+        type: "value",
+        min: 0,
+        max: 100,
+        axisLabel: { fontSize: 11, color: "#6B7280", formatter: "{value}%" },
+        splitLine: { lineStyle: { type: "dashed", color: "#F3F4F6" } },
+      },
+      {
+        type: "value",
+        min: 0,
+        axisLabel: { fontSize: 11, color: "#9CA3AF" },
+        splitLine: { show: false },
+      },
+    ],
+    series: [
+      {
+        name: "평균 이해도",
+        type: "line",
+        smooth: true,
+        data: data.map((s) => s.averageUnderstanding),
+        itemStyle: { color: "#C8962A" },
+        lineStyle: { color: "#C8962A", width: 2 },
+        areaStyle: { color: "rgba(200,150,42,0.08)" },
+      },
+      {
+        name: "복습 필요",
+        type: "bar",
+        yAxisIndex: 1,
+        data: data.map((s) => s.reviewRequiredCount),
+        itemStyle: { color: "#FCD9A5", borderRadius: [4, 4, 0, 0] },
+        barWidth: "40%",
+      },
+    ],
+  };
+});
 
 
 const countStyle: CSSProperties = {
@@ -131,7 +200,11 @@ const barTrackStyle: CSSProperties = {
       {{ error }}
     </div>
 
-    <!-- Search -->
+    <!-- 2열: 세션 목록(좌) + 이해도 추이(우) -->
+    <div :style="{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '1.5rem', alignItems: 'start' }">
+      <!-- 왼쪽: 세션 목록 -->
+      <div :style="{ minWidth: 0 }">
+        <!-- Search -->
     <div
       :style="{
         backgroundColor: '#FFFFFF',
@@ -228,6 +301,22 @@ const barTrackStyle: CSSProperties = {
         </div>
 
         <ChevronRight :size="18" color="#D1D5DB" />
+      </div>
+    </div>
+      </div>
+
+      <!-- 오른쪽: 세션별 이해도 추이 -->
+      <div :style="chartPanelStyle">
+        <h3 :style="{ color: '#111827', marginBottom: '1.25rem' }">세션별 이해도 추이</h3>
+        <VChart
+          v-if="trendSeriesData.length"
+          :option="trendOption"
+          :style="{ height: '300px', width: '100%' }"
+          autoresize
+        />
+        <div v-else :style="{ color: '#6B7280', fontSize: '0.875rem' }">
+          표시할 세션이 없습니다.
+        </div>
       </div>
     </div>
   </div>
