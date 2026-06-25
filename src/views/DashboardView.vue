@@ -96,10 +96,12 @@ const firstDay = computed(() => new Date(calYear.value, calMonth.value - 1, 1).g
 const daysInMonth = computed(() => new Date(calYear.value, calMonth.value, 0).getDate());
 
 const prevMonth = () => {
+  calSelectedDate.value = null;
   if (calMonth.value === 1) { calYear.value -= 1; calMonth.value = 12; }
   else calMonth.value -= 1;
 };
 const nextMonth = () => {
+  calSelectedDate.value = null;
   if (calMonth.value === 12) { calYear.value += 1; calMonth.value = 1; }
   else calMonth.value += 1;
 };
