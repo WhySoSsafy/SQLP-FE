@@ -48,3 +48,17 @@ export function fetchSessionDetail(id: string): Promise<LearningSession> {
 export function createSession(session: LearningSession): Promise<LearningSession> {
   return Promise.resolve(session);
 }
+
+export function fetchCombinedSession(): Promise<LearningSession> {
+  const speakers = [...new Set(MOCK_SESSIONS.flatMap((s) => s.speakers))];
+  const allProblems = MOCK_SESSIONS.flatMap((s) => s.problems);
+  const combined: LearningSession = {
+    id: "all",
+    session_date: "전체",
+    book: "전체 학습",
+    speakers,
+    problems: allProblems,
+    created_at: "",
+  };
+  return Promise.resolve(hydrateSession(combined));
+}

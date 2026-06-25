@@ -11,7 +11,8 @@ import type { LearningSession, ProblemAnalysis, Understanding, Comment } from "@
 import { understandingLabel, understandingTone } from "@/domain/understanding";
 import { getSelectedOrNewestSession } from "@/domain/storage";
 import { useSessionsStore } from "@/stores/sessions";
-import { fetchSessionDetail, fetchComments, createComment, deleteComment } from "@/api";
+import { fetchSessionDetail, fetchCombinedSession, fetchComments, createComment, deleteComment } from "@/api";
+import { MOCK_SESSIONS } from "@/mocks/data";
 
 use([CanvasRenderer, GraphChart, TooltipComponent, LegendComponent]);
 
@@ -27,7 +28,15 @@ const sessionSummary = computed(() =>
 const sessionDetail = ref<LearningSession | null>(null);
 const loading = ref(false);
 
-const session = computed(() => sessionDetail.value ?? sessionSummary.value);
+// 전체/오늘 토글
+const viewMode = ref<"today" | "all">("today");
+const isAllMode = computed(() => viewMode.value === "all");
+const combinedSessionDetail = ref<LearningSession | null>(null);
+
+const session = computed(() => {
+  if (isAllMode.value) return combinedSessionDetail.value;
+  return sessionDetail.value ?? sessionSummary.value;
+});
 
 async function loadDetail(id: string) {
   loading.value = true;
@@ -35,6 +44,17 @@ async function loadDetail(id: string) {
     sessionDetail.value = await fetchSessionDetail(id);
   } catch {
     sessionDetail.value = null;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function loadCombinedDetail() {
+  loading.value = true;
+  try {
+    combinedSessionDetail.value = await fetchCombinedSession();
+  } catch {
+    combinedSessionDetail.value = null;
   } finally {
     loading.value = false;
   }
@@ -127,9 +147,47 @@ watch(
   { immediate: true }
 );
 
+watch(viewMode, (mode) => {
+  selected.value = null;
+  selectedNodeId.value = null;
+  if (mode === "all" && !combinedSessionDetail.value) {
+    loadCombinedDetail();
+  }
+});
+
 function getAvatarColor(_index: number): string {
   return "#C8962A";
 }
+
+// 세션 날짜 맵 (problem.id → "MM/DD" 표시용)
+const _sessionDateMap = new Map(MOCK_SESSIONS.map((s) => [s.id, s.session_date]));
+function getProblemSessionLabel(problemId: string): string {
+  const sid = problemId.split("-p")[0];
+  const d = _sessionDateMap.get(sid) ?? "";
+  return d.slice(5).replace("-", "/"); // "2026-06-20" → "06/20"
+}
+
+const activeToggleBtnStyle: CSSProperties = {
+  backgroundColor: "#C8962A",
+  color: "#FFFFFF",
+  border: "none",
+  borderRadius: "6px",
+  padding: "0.375rem 0.875rem",
+  fontSize: "0.8125rem",
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const inactiveToggleBtnStyle: CSSProperties = {
+  backgroundColor: "#F3F4F6",
+  color: "#6B7280",
+  border: "none",
+  borderRadius: "6px",
+  padding: "0.375rem 0.875rem",
+  fontSize: "0.8125rem",
+  fontWeight: 500,
+  cursor: "pointer",
+};
 
 // 이해도 배지 색상/라벨은 공용 헬퍼로 통일한다. ("이해" 등 변형 값도 normalize되어
 // 잘함=녹/애매=주/모름=적으로 항상 구분되고, badgeConfig[val] undefined 접근으로 깨지지 않는다.)
@@ -173,8 +231,13 @@ const graphOption = computed(() => {
 
   const sel = selectedNodeId.value;
   for (const p of problems) {
-    const pid = `p:${p.problem_number}`;
-    nodes.push({ id: pid, name: `${p.problem_number}번`, category: 0, symbolSize: sel === pid ? 48 : 34 });
+    // 전체 모드: 세션별 고유 ID 사용 ("p:s1-p1"), 라벨은 "s1-1번" 형태
+    // 오늘 모드: 기존 방식 ("p:1"), 라벨은 "1번"
+    const pid = isAllMode.value ? `p:${p.id}` : `p:${p.problem_number}`;
+    const pLabel = isAllMode.value
+      ? `${p.id.split("-p")[0]}-${p.problem_number}번`
+      : `${p.problem_number}번`;
+    nodes.push({ id: pid, name: pLabel, category: 0, symbolSize: sel === pid ? 48 : 34 });
     for (const c of p.concepts) {
       const cid = `c:${c}`;
       if (!conceptSeen.has(cid)) {
@@ -232,11 +295,16 @@ function onGraphClick(params: any) {
     selectedNodeId.value = null;
     return;
   }
-  const id = String(params.data?.id ?? "");
-  selectedNodeId.value = id;
-  if (!id.startsWith("p:")) return;
-  const num = Number(id.slice(2));
-  const p = (session.value?.problems ?? []).find((x) => x.problem_number === num);
+  const nodeId = String(params.data?.id ?? "");
+  selectedNodeId.value = nodeId;
+  if (!nodeId.startsWith("p:")) return;
+  const key = nodeId.slice(2); // 오늘: "1", 전체: "s1-p1"
+  let p: ProblemAnalysis | undefined;
+  if (isAllMode.value) {
+    p = (session.value?.problems ?? []).find((x) => x.id === key);
+  } else {
+    p = (session.value?.problems ?? []).find((x) => x.problem_number === Number(key));
+  }
   if (p) selected.value = p;
 }
 </script>
@@ -253,6 +321,23 @@ function onGraphClick(params: any) {
           overflow: 'hidden',
         }"
       >
+        <!-- 전체/오늘 토글 -->
+        <div
+          :style="{
+            padding: '0.625rem 1.5rem',
+            borderBottom: '1px solid #F3F4F6',
+            display: 'flex',
+            gap: '0.375rem',
+          }"
+        >
+          <button :style="viewMode === 'today' ? activeToggleBtnStyle : inactiveToggleBtnStyle" @click="viewMode = 'today'">
+            오늘 학습
+          </button>
+          <button :style="viewMode === 'all' ? activeToggleBtnStyle : inactiveToggleBtnStyle" @click="viewMode = 'all'">
+            전체 학습
+          </button>
+        </div>
+
         <!-- No session state -->
         <template v-if="!session">
           <div
@@ -298,6 +383,7 @@ function onGraphClick(params: any) {
                   <th
                     v-for="h in [
                       '번호',
+                      ...(isAllMode ? ['교재'] : []),
                       '과목',
                       '핵심 개념',
                       ...session.speakers.flatMap((speaker) => [
@@ -340,6 +426,19 @@ function onGraphClick(params: any) {
                     }"
                   >
                     {{ p.problem_number }}번
+                  </td>
+                  <!-- 전체 모드: 교재(세션 날짜) 컬럼 -->
+                  <td
+                    v-if="isAllMode"
+                    :style="{
+                      padding: '0.875rem 1rem',
+                      color: '#9CA3AF',
+                      whiteSpace: 'nowrap',
+                      fontSize: '0.75rem',
+                      textAlign: 'center',
+                    }"
+                  >
+                    {{ getProblemSessionLabel(p.id) }}
                   </td>
                   <td
                     :style="{

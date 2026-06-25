@@ -49,7 +49,7 @@ export {
 } from "./tokens";
 export { refreshAccessToken, setOnAuthExpired } from "./refresh";
 export { login, register } from "./auth";
-export { fetchSessions, fetchSessionDetail, createSession } from "./sessions";
+export { fetchSessions, fetchSessionDetail, fetchCombinedSession, createSession } from "./sessions";
 export {
   fetchDashboardSummary,
   fetchSessionSummaries,
